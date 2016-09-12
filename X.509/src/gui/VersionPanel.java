@@ -8,23 +8,33 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 
 @SuppressWarnings("serial")
 public class VersionPanel extends JPanel implements ActionListener {
-	MainFrame parent;
+	public static final int NUM_VERSIONS = 3;
+	public static final int V1 = 0, V2 = 1, V3 = 2;
 	
-	int selected = 0;
-	ButtonGroup buttonGroup = new ButtonGroup();
-	JRadioButton buttons[] = new JRadioButton [3];
+	private MainFrame parent;
+	private int supported_version;
+	private int selected = V1;
+	private ButtonGroup buttonGroup = new ButtonGroup();
+	private JRadioButton buttons[] = new JRadioButton [3];
 	
-	public VersionPanel(MainFrame parent) {
+	VersionPanel(MainFrame parent, int version_supported) {
 		this.parent = parent;
+		this.supported_version = version_supported;
 		
 		setBounds(720, 10, 550, 50);
 		setLayout(new GridLayout(1, 3, 5, 3));
-		setBorder(BorderFactory.createTitledBorder("Certificate Version"));
+		Border b = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+        setBorder(BorderFactory.createTitledBorder(b, "Certificate Version"));
 		
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < NUM_VERSIONS; i++) {
+			if (i > version_supported)
+				continue;
+			
 			buttons[i] = new JRadioButton("Version " + (i + 1));
 			buttons[i].addActionListener(this);
 			buttonGroup.add(buttons[i]);
@@ -33,35 +43,63 @@ public class VersionPanel extends JPanel implements ActionListener {
 		
 		buttons[selected].setSelected(true);			
 	}
+	
+	void resetPanel() {
+		// TODO zbog subject panela
+		selected = V1;
+		buttons[selected].setSelected(true);
+		
+		if (supported_version >= V2)
+			enableV2();
+	}
+	
+	void enablePanel(boolean flag) {
+		// TODO check
+		setEnabled(flag);
+		for (int i = 0; i < NUM_VERSIONS; i++)
+			if (i <= supported_version)
+				buttons[i].setEnabled(flag);
+	}
+	
+	void enableV2() {
+		if (selected < V2) {
+			parent.subject_panel.enableV2(false);
+			parent.issuer_panel.enableV2(false);
+		} else {
+			parent.subject_panel.enableV2(true);
+			parent.issuer_panel.enableV2(true);
+		}
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < NUM_VERSIONS; i++)
 			if (((JRadioButton) e.getSource()) == buttons[i]) {
 				selected = i;
 				break;
 			} 
-			
-			if (selected == 0) {
-				parent.subject_panel.labels[InfoPanel.UI].setEnabled(false);
-				((SubjectPanel) parent.subject_panel).values[InfoPanel.UI].setEnabled(false);
-				parent.issuer_panel.labels[InfoPanel.UI].setEnabled(false);
-				((IssuerPanel) parent.issuer_panel).values[InfoPanel.UI].setEnabled(false);
-			} else {
-				parent.subject_panel.labels[InfoPanel.UI].setEnabled(true);
-				((SubjectPanel) parent.subject_panel).values[InfoPanel.UI].setEnabled(true);
-				parent.issuer_panel.labels[InfoPanel.UI].setEnabled(true);
-				((IssuerPanel) parent.issuer_panel).values[InfoPanel.UI].setEnabled(true);
-			}
+		
+		if (supported_version >= V2)
+			enableV2();			
 	}
 	
 	// ********************************************************************************************************
-	// 												GETTERS
+	// 										GETTERS AND SETTERS
 	// ********************************************************************************************************
 	
-	public int getSelected() {
+	int getSupportedVersion() {
+		return supported_version;
+	}
+	
+	int getVersion() {
 		return selected;
+	}
+	
+	void setVersion(int v) {
+		// TODO
+		selected = v;
+		buttons[v].setSelected(true);
 	}
 
 }

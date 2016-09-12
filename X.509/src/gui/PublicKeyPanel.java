@@ -6,18 +6,20 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+
+import exceptions.CustomException;
+import exceptions.GuiException;
 
 @SuppressWarnings("serial")
 public class PublicKeyPanel extends JPanel implements ActionListener {
@@ -30,7 +32,8 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	
 	private MainFrame parent;
 	private int algorithm = -1;
-	public boolean enabled[] = { true, true, true, true };			// algorithm configuration
+	boolean enabled[];			// algorithm configuration
+	// TODO
 	
 	// KEY GENERATOR ALGORITHMS
 	private final String algorithms[] = { "DSA", "RSA", "GOST", "EC" };
@@ -62,25 +65,18 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 						};
 	private JComboBox hash_algorithms[] = new JComboBox [NUM_OF_ALGORITHMS];
 	
-	public PublicKeyPanel(MainFrame parent) throws CustomException {
+	PublicKeyPanel(MainFrame parent, boolean enabled[]) {
+		// TODO
 		this.parent = parent;
+		this.enabled = enabled;
 		setBounds(720, 210, 550, 200);
 		setLayout(new GridBagLayout());
-		setBorder(BorderFactory.createTitledBorder("Certificate Public Key"));
+		Border b = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+        setBorder(BorderFactory.createTitledBorder(b, "Certificate Public Key"));
 		
 		initPanelData();
 		
-		for (int i = 0; i < NUM_OF_ALGORITHMS; i++)
-			if (enabled[i]) {
-				algorithm = i;
-				break;
-			}
-		
-		if (algorithm == -1)
-			throw new CustomException("At least one public key algorithm must be enabled.");
-		
-		alg_buttons[algorithm].setSelected(true);
-		selectAlgorithm();
+		resetPanel();
 	}
 	
 	private void initPanelData() {
@@ -158,18 +154,24 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 			// increment rows
 			row++;
 			
-		}
-		
+		}	
 	}
 	
-	public void selectAlgorithm() {
+	void selectAlgorithm() {	
+		parameters[algorithm].setSelectedIndex(0);
+		hash_algorithms[algorithm].setSelectedIndex(0);
+		
 		labels[algorithm].setEnabled(true);
 		parameters[algorithm].setEnabled(true);
 		hash_algorithms[algorithm].setEnabled(true);
+		
 		if (algorithm == EC) {
+			parameters[EC_CURVE_PARAMETER].setSelectedIndex(0);
+			
 			labels[EC_CURVE_PARAMETER].setEnabled(true);
 			parameters[EC_CURVE_PARAMETER].setEnabled(true);
 		}
+		
 		for (int i = 0; i < NUM_OF_ALGORITHMS; i++) {
 			if (!enabled[i])
 				continue;
@@ -184,6 +186,43 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 					}
 				}
 		}
+		
+		parent.subject_panel.setValue(InfoPanel.SA, getSignatureAlgorithm());				
+	}
+	
+	void resetPanel() {
+		// TODO
+		for (int i = 0; i < NUM_OF_ALGORITHMS; i++)
+			if (enabled[i]) {
+				algorithm = i;
+				break;
+			}
+		
+		alg_buttons[algorithm].setSelected(true);
+		selectAlgorithm();
+	}
+	
+	void enablePanel(boolean flag) {
+		// TODO
+		setEnabled(flag);
+		
+		if (flag)
+			resetPanel();	
+		else {
+			for (int i = 0; i < NUM_OF_ALGORITHMS; i++) {
+				if (!enabled[i])
+					continue;	
+				alg_buttons[i].setEnabled(flag);
+				labels[i].setEnabled(flag);
+				parameters[i].setEnabled(flag);
+				hash_algorithms[i].setEnabled(flag);
+				if (i == EC) {
+					labels[EC_CURVE_PARAMETER].setEnabled(flag);
+					parameters[EC_CURVE_PARAMETER].setEnabled(flag);
+				}
+				
+			}
+		}	
 	}
 	
 	@Override
@@ -200,38 +239,40 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 				algorithm = EC;
 			}	
 			selectAlgorithm();
+		} else if (e.getSource() instanceof JComboBox) {
+			// if it's either radio button or hash combo box it needs to change text field value
+			parent.subject_panel.setValue(InfoPanel.SA, getSignatureAlgorithm());
 		}
-		
-		// if it's either radio button or hash combo box it needs to change text field value
-		parent.subject_panel.setValue(InfoPanel.SA, getSignatureAlgorithm());				
 	}
 		
 	// ********************************************************************************************************
-	// 												GETTERS
+	// 											GETTERS
 	// ********************************************************************************************************
 	
-	public int getAlgorithmIndex() {
+	int getAlgorithmIndex() {
 		return algorithm;
 	}
 	
-	public String getAlgorithm() {
+	String getAlgorithm() {
 		return algorithms[algorithm];
 	}
 	
-	public String getAlgorithmParameter(int i) throws CustomException {
+	void setAlgorithm(String s) {
+		
+	}
+	
+	String getAlgorithmParameter(int i) {
 		if (i == 0)
 			return (String) parameters[algorithm].getSelectedItem();
 		else 
-			if (algorithm == EC)
-				return (String) parameters[EC_CURVE_PARAMETER].getSelectedItem();
-			else
-				throw new CustomException("Invalid index while obtaining public key parameter.");
+			return (String) parameters[EC_CURVE_PARAMETER].getSelectedItem();
 
 	}
 	
-	public String getSignatureAlgorithm() {
+	String getSignatureAlgorithm() {
 		return (String) hash_algorithms[algorithm].getSelectedItem();
 	}
+	
 
 }
 
