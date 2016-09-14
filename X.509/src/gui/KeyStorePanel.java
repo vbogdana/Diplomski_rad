@@ -1,5 +1,7 @@
 package gui;
 
+import java.util.Enumeration;
+
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -46,28 +48,61 @@ public class KeyStorePanel extends JPanel {
 		scroll_pane.setBounds(10, 185, 280, 205);
 		add(scroll_pane);
 		
-		keystore_list.setSelectedIndex(0);
-		keystore_list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);		
-		keystore_list.addListSelectionListener(listener);
-		
 		reset.addActionListener(listener);
 		new_keypair.addActionListener(listener);
 		save_keypair.addActionListener(listener);
 		import_keypair.addActionListener(listener);
 		export_keypair.addActionListener(listener);
 		
-		resetPanel();
+		// resetPanel();
 		
+		keystore_list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);		
+		keystore_list.addListSelectionListener(listener);
+	}
+	
+	void loadKeystore(Enumeration<String> certificates) {
+		keystore_model.removeAllElements();
+		keystore_model.addElement("Local Keystore");
+
+		if (certificates != null) {
+			while (certificates.hasMoreElements())
+				keystore_model.addElement(certificates.nextElement());
+		}
+		
+		resetPanel();
+
 	}
 	
 	void resetPanel() {
-		// TODO
-		// if keystore.size < 0
-		reset.setEnabled(false);
+		if (keystore_model.isEmpty()) {
+			reset.setEnabled(false);
+			keystore_model.addElement("Local Keystore");
+		} else {
+			reset.setEnabled(true);
+		}
 		new_keypair.setEnabled(true);
 		save_keypair.setEnabled(true);
 		import_keypair.setEnabled(true);
 		export_keypair.setEnabled(false);
+		
+		keystore_list.setSelectedIndex(0);		
+	}
+	
+	void enablePanel(boolean flag) {
+		save_keypair.setEnabled(!flag);
+		export_keypair.setEnabled(flag);
+	}
+
+	void addKeypair(String name) {
+		keystore_model.addElement(name);		
+	}
+
+	public int getSelectedIndex() {
+		return keystore_list.getSelectedIndex();
+	}
+	
+	public String getSelectedValue() {
+		return keystore_list.getSelectedValue();
 	}
 
 }

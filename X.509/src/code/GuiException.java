@@ -1,4 +1,4 @@
-package exceptions;
+package code;
 
 @SuppressWarnings("serial")
 public class GuiException extends CustomException {

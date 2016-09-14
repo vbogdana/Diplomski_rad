@@ -1,7 +1,7 @@
 package gui;
 
 import code.CodeInterface;
-import exceptions.GuiException;
+import code.GuiException;
 
 public abstract class GuiInterfaceV2 extends GuiInterface {
 
@@ -10,6 +10,10 @@ public abstract class GuiInterfaceV2 extends GuiInterface {
 	}
 	
 	//V2+
-	public String getSubjectUniqueIdentifier() { return window.getSubjectInfo(UI); }
+	public String getSubjectUniqueIdentifier() { return window.getSubjectInfo(Constants.UI); }
+	public void setSubjectUniqueIdentifier(String v) { window.setSubjectInfo(Constants.UI, v); }
+	
+	public String getIssuerUniqueIdentifier() { return window.getIssuerInfo(Constants.UI); }
+	public void setIssuerUniqueIdentifier(String v) { window.setIssuerInfo(Constants.UI, v); }
 
 }

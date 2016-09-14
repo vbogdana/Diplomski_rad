@@ -26,13 +26,13 @@ public class VersionPanel extends JPanel implements ActionListener {
 		this.parent = parent;
 		this.supported_version = version_supported;
 		
-		setBounds(720, 10, 550, 50);
+		setBounds(720, 10, 560, 50);
 		setLayout(new GridLayout(1, 3, 5, 3));
 		Border b = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
         setBorder(BorderFactory.createTitledBorder(b, "Certificate Version"));
 		
 		for (int i = 0; i < NUM_VERSIONS; i++) {
-			if (i > version_supported)
+			if (i > supported_version || i == V2)
 				continue;
 			
 			buttons[i] = new JRadioButton("Version " + (i + 1));
@@ -45,7 +45,6 @@ public class VersionPanel extends JPanel implements ActionListener {
 	}
 	
 	void resetPanel() {
-		// TODO zbog subject panela
 		selected = V1;
 		buttons[selected].setSelected(true);
 		
@@ -54,11 +53,10 @@ public class VersionPanel extends JPanel implements ActionListener {
 	}
 	
 	void enablePanel(boolean flag) {
-		// TODO check
-		setEnabled(flag);
 		for (int i = 0; i < NUM_VERSIONS; i++)
-			if (i <= supported_version)
+			if (i <= supported_version && i != V2)
 				buttons[i].setEnabled(flag);
+				
 	}
 	
 	void enableV2() {
@@ -73,7 +71,6 @@ public class VersionPanel extends JPanel implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
 		for (int i = 0; i < NUM_VERSIONS; i++)
 			if (((JRadioButton) e.getSource()) == buttons[i]) {
 				selected = i;
@@ -97,7 +94,6 @@ public class VersionPanel extends JPanel implements ActionListener {
 	}
 	
 	void setVersion(int v) {
-		// TODO
 		selected = v;
 		buttons[v].setSelected(true);
 	}

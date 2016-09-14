@@ -1,4 +1,4 @@
-package gui.version3;
+package gui;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -6,23 +6,23 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class ExtensionPanel extends JPanel {
 	
-	public ExtensionPanel() {
+	ExtensionPanel() {
 		// TODO
 		setBorder(BorderFactory.createTitledBorder("Extension"));
 
 		
 	}
 	
-	public void resetPanel() {
+	void resetPanel() {
 		// TODO
 	}
 	
-	public void enablePanel(boolean flag) {
+	void enablePanel(boolean flag) {
 		// TODO
 		setEnabled(flag);
 	}
 	
-	public int getH() {
+	int getH() {
 		//TODO da bude abstract i da vraca visinu u zavisnosti od extenzije
 		return 100;
 	}

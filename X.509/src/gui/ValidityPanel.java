@@ -5,16 +5,20 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Properties;
+
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
-import exceptions.DataException;
+
+import code.DataException;
+import code.DateLabelFormatter;
 
 @SuppressWarnings("serial")
 public class ValidityPanel extends JPanel {
@@ -29,7 +33,7 @@ public class ValidityPanel extends JPanel {
 	private JDatePickerImpl datePicker[] = new JDatePickerImpl [2];
 
 	ValidityPanel() {		
-		setBounds(720, 140, 550, 60);
+		setBounds(720, 140, 560, 60);
 		setLayout(new GridLayout(1, 4, 5, 3));
 		Border b = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
         setBorder(BorderFactory.createTitledBorder(b, "Certificate Validity"));
@@ -60,9 +64,9 @@ public class ValidityPanel extends JPanel {
 	}
 	
 	void enablePanel(boolean flag) {
-		setEnabled(false);
+		//setEnabled(false);
 		for (int i = 0; i < 2; i++) {
-			labels[i].setEnabled(flag);
+			//labels[i].setEnabled(flag);
 			datePicker[i].getComponent(1).setEnabled(flag);
 		}
 	}
@@ -85,7 +89,7 @@ public class ValidityPanel extends JPanel {
 		return dateModel[i].getValue();
 	}
 	
-	void setDate(int i, String date) throws ParseException {
-		dateModel[i].setValue((Date) dateFormatter.stringToValue(date));
+	void setDate(int i, Date d) {
+		dateModel[i].setValue(d);
 	}
 }

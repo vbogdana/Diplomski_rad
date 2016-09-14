@@ -18,9 +18,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import exceptions.CustomException;
-import exceptions.GuiException;
-
 @SuppressWarnings("serial")
 public class PublicKeyPanel extends JPanel implements ActionListener {
 	public static final int NUM_OF_ALGORITHMS = 4;
@@ -44,7 +41,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	private final String texts[] = { "Key length:", "Key length:", "Type:", "Set:", "Curve:" };	
 	private String dsa_lengths[] = new String [NUM_OF_DSA_LENGTHS];
 	private String rsa_lengths[] = { "512", "1024", "2048", "4096" };
-	private String gost_types[] = { "GOST3410-2001-CryptoPro-A", "GOST3410-2001-CryptoPro-B", "GOST3410-2001-CryptoPro-C", "GOST3410-2001-CryptoPro-XchA", "GOST3410-2001-CryptoPro-XchB" };
+	private String gost_types[] = { "GostR3410-2001-CryptoPro-A", "GostR3410-2001-CryptoPro-B", "GostR3410-2001-CryptoPro-C", "GostR3410-2001-CryptoPro-XchA", "GostR3410-2001-CryptoPro-XchB" };
 	private String ec_sets[] = { "X9.62", "SEC", "NIST" };
 	private String curves_by_set[][] = { 
 								  { "prime192v1", "prime192v2", "prime192v3", "prime239v1", "prime239v2", "prime239v3", "prime256v1" }, 
@@ -60,7 +57,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	private String hashes[][] = { 
 							{ "SHA1withDSA" }, 
 							{ "MD2withRSA", "MD5withRSA", "SHA1withRSA", "SHA224withRSA", "SHA256withRSA", "SHA384withRSA", "SHA512withRSA", "RIPEMD128withRSA", "RIPEMD160withRSA", "RIPEMD256withRSA" },
-							{ "GOST3411withGOST3410", "GOST3411withECGOST3410" },
+							{ "GOST3411withECGOST3410" },
 							{ "SHA1withECDSA", "SHA224withECDSA", "SHA256withECDSA", "SHA384withECDSA", "SHA512withECDSA" }
 						};
 	private JComboBox hash_algorithms[] = new JComboBox [NUM_OF_ALGORITHMS];
@@ -69,7 +66,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 		// TODO
 		this.parent = parent;
 		this.enabled = enabled;
-		setBounds(720, 210, 550, 200);
+		setBounds(720, 210, 560, 200);
 		setLayout(new GridBagLayout());
 		Border b = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
         setBorder(BorderFactory.createTitledBorder(b, "Certificate Public Key"));
@@ -187,11 +184,10 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 				}
 		}
 		
-		parent.subject_panel.setValue(InfoPanel.SA, getSignatureAlgorithm());				
+		parent.subject_panel.setValue(Constants.SA, getSignatureAlgorithm());				
 	}
 	
 	void resetPanel() {
-		// TODO
 		for (int i = 0; i < NUM_OF_ALGORITHMS; i++)
 			if (enabled[i]) {
 				algorithm = i;
@@ -203,12 +199,14 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	}
 	
 	void enablePanel(boolean flag) {
-		// TODO
 		setEnabled(flag);
 		
-		if (flag)
+		if (flag) {
+			for (int i = 0; i < NUM_OF_ALGORITHMS; i++)
+				if (enabled[i])
+					alg_buttons[i].setEnabled(flag);
 			resetPanel();	
-		else {
+		} else {
 			for (int i = 0; i < NUM_OF_ALGORITHMS; i++) {
 				if (!enabled[i])
 					continue;	
@@ -219,8 +217,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 				if (i == EC) {
 					labels[EC_CURVE_PARAMETER].setEnabled(flag);
 					parameters[EC_CURVE_PARAMETER].setEnabled(flag);
-				}
-				
+				}				
 			}
 		}	
 	}
@@ -241,7 +238,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 			selectAlgorithm();
 		} else if (e.getSource() instanceof JComboBox) {
 			// if it's either radio button or hash combo box it needs to change text field value
-			parent.subject_panel.setValue(InfoPanel.SA, getSignatureAlgorithm());
+			parent.subject_panel.setValue(Constants.SA, getSignatureAlgorithm());
 		}
 	}
 		
@@ -254,11 +251,20 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	}
 	
 	String getAlgorithm() {
-		return algorithms[algorithm];
+		return (algorithm == GOST ? "ECGOST3410" : algorithms[algorithm]);
 	}
 	
 	void setAlgorithm(String s) {
+		// TODO
+		switch (s) {
+			case "DSA": algorithm = DSA; break;
+			case "RSA": algorithm = RSA; break;
+			case "GOST": algorithm = GOST; break;
+			case "EC": algorithm = EC; break;
+		}
 		
+		alg_buttons[algorithm].setSelected(true);
+		//selectAlgorithm();
 	}
 	
 	String getAlgorithmParameter(int i) {
@@ -269,8 +275,35 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 
 	}
 	
+	public void setAlgorithmParameter(int i, String v) {
+		// TODO Auto-generated method stub
+		if (i == 0) {
+			for (int j = 0; j < parameters[algorithm].getItemCount(); j++)
+				if (((String) parameters[algorithm].getItemAt(j)).equals(v)) {
+					parameters[algorithm].setSelectedIndex(j);
+					break;
+				}
+		} else {
+			for (int j = 0; j < parameters[EC_CURVE_PARAMETER].getItemCount(); j++)
+				if (((String) parameters[EC_CURVE_PARAMETER].getItemAt(j)).equals(v)) {
+					parameters[EC_CURVE_PARAMETER].setSelectedIndex(j);
+					break;
+				}
+		}	
+	}
+	
 	String getSignatureAlgorithm() {
 		return (String) hash_algorithms[algorithm].getSelectedItem();
+	}
+
+	public void setSignatureAlgorithm(String v) {
+		// TODO Auto-generated method stub
+		for (int j = 0; j < hash_algorithms[algorithm].getItemCount(); j++)
+			if (((String) hash_algorithms[algorithm].getItemAt(j)).equals(v)) {
+				hash_algorithms[algorithm].setSelectedIndex(j);
+				break;
+			}
+		parent.subject_panel.setValue(Constants.SA, getSignatureAlgorithm());
 	}
 	
 

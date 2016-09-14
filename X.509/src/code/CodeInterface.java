@@ -1,41 +1,17 @@
 package code;
 
-import x509.GuiV1;
-import x509.GuiV2;
-import x509.GuiV3;
+import java.util.Enumeration;
 
 public interface CodeInterface {
-	
-	public abstract void saveKey();
+	public abstract Enumeration<String> loadKeystore();
+	public abstract boolean loadKey(String keypair_name);
+	public abstract boolean saveKey(String keypair_name);
 	public abstract void resetLocalKeyStore();
-	public abstract void importKeypair();
-	public abstract void exportKeypair();
+	public abstract boolean importKeypair(String keypair_name, String file, String password);
+	public abstract boolean exportKeypair(String keypair_name, String file, String password);
 	public abstract void signCertificate();
 	public abstract void importCertificate();
 	public abstract void exportCertificate();
-
-}
-
-abstract class CodeV1 implements CodeInterface {
-	GuiV1 access;
 	
-	public CodeV1(GuiV1 access) {
-		this.access = access;
-	}
-}
 
-abstract class CodeV2 implements CodeInterface {
-	GuiV2 access;
-	
-	public CodeV2(GuiV2 access) {
-		this.access = access;
-	}
-}
-
-abstract class CodeV3 implements CodeInterface {
-	GuiV3 access;
-	
-	public CodeV3(GuiV3 access) {
-		this.access = access;
-	}
 }

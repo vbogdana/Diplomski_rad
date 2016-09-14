@@ -1,13 +1,14 @@
-package x509;
+package x509.v1;
 
 import code.CodeInterface;
-import exceptions.GuiException;
+import code.GuiException;
+import gui.Constants;
 import gui.GuiInterface;
 
 public class GuiV1 extends GuiInterface {
 
 	public GuiV1(boolean[] algorithm_conf, CodeInterface code) throws GuiException {
-		super(algorithm_conf, V1, code);
+		super(algorithm_conf, Constants.V1, code);
 	}
 
 

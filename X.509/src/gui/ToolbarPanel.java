@@ -36,5 +36,10 @@ public class ToolbarPanel extends JPanel {
 		keystore_panel.resetPanel();
 		manage_panel.resetPanel();
 	}
+	
+	void enablePanel(boolean flag) {
+		keystore_panel.enablePanel(flag);
+		manage_panel.enablePanel(flag);
+	}
 
 }

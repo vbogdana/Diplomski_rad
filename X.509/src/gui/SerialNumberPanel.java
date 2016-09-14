@@ -19,7 +19,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import exceptions.DataException;
+import code.DataException;
 
 @SuppressWarnings("serial")
 public class SerialNumberPanel extends JPanel implements ActionListener {
@@ -31,7 +31,7 @@ public class SerialNumberPanel extends JPanel implements ActionListener {
 	private JButton button = new JButton("Generate");
 
 	SerialNumberPanel() {
-		setBounds(720, 70, 550, 60);
+		setBounds(720, 70, 560, 60);
 		setLayout(new GridBagLayout());
 		Border b = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
         setBorder(BorderFactory.createTitledBorder(b, "Certificate Serial Number"));
@@ -39,7 +39,7 @@ public class SerialNumberPanel extends JPanel implements ActionListener {
 		label.setHorizontalAlignment(SwingConstants.RIGHT);
 		button.addActionListener(this);
 		value.setEnabled(false);
-		value.setDisabledTextColor(new Color(0));
+		value.setDisabledTextColor(Color.BLACK);
 		
 		GridBagConstraints c = new GridBagConstraints();		
 		c.gridy = 0; c.gridx = 0;
@@ -62,10 +62,8 @@ public class SerialNumberPanel extends JPanel implements ActionListener {
 	}
 	
 	void enablePanel(boolean flag) {
-		setEnabled(flag);
-		label.setEnabled(flag);
-		value.setEnabled(flag);
-		button.setEnabled(flag);
+		//setEnabled(flag);
+		button.setEnabled(flag);		
 	}
 	
 	void checkData() throws DataException {
@@ -75,7 +73,6 @@ public class SerialNumberPanel extends JPanel implements ActionListener {
 	
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		// TODO Auto-generated method stub
 		BigInteger num = new BigInteger(NUM_BITS, new SecureRandom());
 		value.setText(num.toString());
 	}

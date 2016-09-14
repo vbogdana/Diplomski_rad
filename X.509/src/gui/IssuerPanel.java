@@ -18,7 +18,7 @@ public class IssuerPanel extends InfoPanel {
 	IssuerPanel(MainFrame parent) {
 		super(parent);
 		
-		labels[CN] = new JLabel("Common Name (CN):");
+		labels[Constants.CN] = new JLabel("Common Name (CN):");
 		
 		setBounds(360, 320, 350, 300);
 		setLayout(new GridBagLayout());
@@ -26,7 +26,7 @@ public class IssuerPanel extends InfoPanel {
         setBorder(BorderFactory.createTitledBorder(b, "Issued by"));
 		
 		for (int i = 0; i < 8; i++) {	
-			if ((parent.version_panel.getSupportedVersion() < VersionPanel.V2) && (i == UI))
+			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i] = new JLabel("");
@@ -46,15 +46,16 @@ public class IssuerPanel extends InfoPanel {
 			add(values[i], c);
 		}
 		
-		if (parent.version_panel.getSupportedVersion() >= VersionPanel.V2) {
-			labels[UI].setEnabled(false);
-			values[UI].setEnabled(false);
+		// because at the start selected version is 1
+		if (parent.version_panel.getSupportedVersion() >= Constants.V2) {
+			labels[Constants.UI].setEnabled(false);
+			values[Constants.UI].setEnabled(false);
 		}
 	}
 	
 	void resetPanel() {
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < VersionPanel.V2) && (i == UI))
+			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i].setText("");
@@ -62,29 +63,36 @@ public class IssuerPanel extends InfoPanel {
 	}
 	
 	void enablePanel(boolean flag) {
-		// TODO check
+		// TODO check zbog v2
+		/*
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < VersionPanel.V2) && (i == UI))
+			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			labels[i].setEnabled(flag);
 			values[i].setEnabled(flag);
 		}
+		*/
 		
 		if (flag) {
-			if (parent.version_panel.getVersion() < VersionPanel.V2) {
-				 labels[UI].setEnabled(false);
-				 values[UI].setEnabled(false);
-			 }	
-		}		
+			if (parent.version_panel.getVersion() < Constants.V2)
+				 enableV2(false);
+			 else
+				 enableV2(true);
+		} else {
+			if (parent.version_panel.getVersion() > Constants.V1)
+				labels[Constants.UI].setEnabled(true);
+			else
+				labels[Constants.UI].setEnabled(false);
+		}
 	}
 	
 	void enableV2(boolean flag) {
-		labels[InfoPanel.UI].setEnabled(flag);
-		values[InfoPanel.UI].setEnabled(flag);
+		labels[Constants.UI].setEnabled(flag);
+		values[Constants.UI].setEnabled(flag);
 		
 		if (!flag)
-			values[UI].setText("");
+			values[Constants.UI].setText("");
 	}
 	
 	// ********************************************************************************************************
@@ -104,6 +112,24 @@ public class IssuerPanel extends InfoPanel {
 		String info = "";
 		
 		return info;
+	}
+	
+	void setInfo(String info) {
+		resetPanel();
+		String arr[] = info.split(",");
+		for (int i = 0; i < arr.length; i++){
+			String attr = arr[i];
+			String key_val[] = attr.split("=");
+			switch(key_val[0]) {
+				case "C": setValue(Constants.C, key_val[1]); break;
+				case "ST": setValue(Constants.ST, key_val[1]); break;
+				case "L": setValue(Constants.L, key_val[1]); break;
+				case "O": setValue(Constants.O, key_val[1]); break;
+				case "OU": setValue(Constants.OU, key_val[1]); break;
+				case "CN": setValue(Constants.CN, key_val[1]); break;
+				case "SA": setValue(Constants.SA, key_val[1]); break;
+			}
+		}
 	}
 
 }

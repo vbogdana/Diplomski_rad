@@ -11,7 +11,7 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import exceptions.DataException;
+import code.DataException;
 
 @SuppressWarnings("serial")
 public class SubjectPanel extends InfoPanel {
@@ -21,7 +21,7 @@ public class SubjectPanel extends InfoPanel {
 	SubjectPanel(MainFrame parent) {
 		super(parent);
 		
-		labels[CN] = new JLabel("Common Name (CN)*:");
+		labels[Constants.CN] = new JLabel("Common Name (CN)*:");
 		
 		setBounds(360, 10, 350, 300);
 		setLayout(new GridBagLayout());
@@ -29,10 +29,11 @@ public class SubjectPanel extends InfoPanel {
         setBorder(BorderFactory.createTitledBorder(b, "Certificate Subject"));
 		
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < VersionPanel.V2) && (i == UI))
+			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i] = new JTextField(40);
+			values[i].setDisabledTextColor(Color.BLACK);
 			
 			GridBagConstraints c = new GridBagConstraints();		
 			c.gridy = i; c.gridx = 0;
@@ -48,65 +49,63 @@ public class SubjectPanel extends InfoPanel {
 			
 		}
 
-		values[SA].setEnabled(false);
-		values[SA].setDisabledTextColor(Color.BLACK);
-		if (parent.version_panel.getSupportedVersion() >= VersionPanel.V2) {
-			labels[UI].setEnabled(false);
-			values[UI].setEnabled(false);
+		values[Constants.SA].setEnabled(false);
+		// because at the start selected version is 1
+		if (parent.version_panel.getSupportedVersion() >= Constants.V2) {
+			labels[Constants.UI].setEnabled(false);
+			values[Constants.UI].setEnabled(false);
 		}
 	}
 	
 	void resetPanel() {
 		// TODO
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < VersionPanel.V2) && (i == UI))
+			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i].setText("");
 		}
-		
-		// if (parent.version_panel.getVersion() < VersionPanel.V2)
-					//labels[UI].setEnabled(false);
+
 		// da li treba i algoritam da se popuni
-		values[SA].setText(parent.public_key_panel.getSignatureAlgorithm());
+		values[Constants.SA].setText(parent.public_key_panel.getSignatureAlgorithm());
 	}
 
 	void enablePanel(boolean flag) {
 		// TODO check zbog v2
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < VersionPanel.V2) && (i == UI))
+			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
 				continue;
 			
-			labels[i].setEnabled(flag);
 			values[i].setEnabled(flag);
 		}
 		
 		if (flag) {
-			values[SA].setEnabled(false);
-			values[SA].setDisabledTextColor(Color.BLACK);
+			values[Constants.SA].setEnabled(false);
 			
-			 if (parent.version_panel.getVersion() < VersionPanel.V2) {
-				 labels[UI].setEnabled(false);
-				 values[UI].setEnabled(false);
-			 }
+			 if (parent.version_panel.getVersion() < Constants.V2)
+				 enableV2(false);
+			 else
+				 enableV2(true);
 		} else {
-			values[SA].setDisabledTextColor(Color.LIGHT_GRAY);
+			if (parent.version_panel.getVersion() > Constants.V1)
+				labels[Constants.UI].setEnabled(true);
+			else
+				labels[Constants.UI].setEnabled(false);
 		}
+
 	}
 	
 	void enableV2(boolean flag) {
-		labels[InfoPanel.UI].setEnabled(flag);
-		values[InfoPanel.UI].setEnabled(flag);
+		labels[Constants.UI].setEnabled(flag);
+		values[Constants.UI].setEnabled(flag);
 		
 		if (!flag)
-			values[UI].setText("");
+			values[Constants.UI].setText("");
 	}
 	
 	void checkData() throws DataException {
-		if (values[CN].getText() == null || values[CN].getText().equals(""))
+		if (values[Constants.CN].getText() == null || values[Constants.CN].getText().equals(""))
 			throw new DataException("Common Name is required.");
-		// TODO
-		// is UI in v2 required?
 	}
 	
 	// ********************************************************************************************************
@@ -124,15 +123,32 @@ public class SubjectPanel extends InfoPanel {
 	String getInfo() {
 		// TODO
 		String info = "";
-		
-		if (!values[CN].getText().isEmpty()) 	info += "CN=" + values[CN].getText();
-		if (!values[OU].getText().isEmpty())	info += ", OU=" + values[OU].getText();
-		if (!values[O].getText().isEmpty())		info += ", O=" + values[O].getText();
-		if (!values[L].getText().isEmpty())		info += ", L=" + values[L].getText();
-		if (!values[ST].getText().isEmpty())		info += ", ST=" + values[ST].getText();
-		if (!values[C].getText().isEmpty())		info += ", C=" + values[C].getText();
+
+		if (!values[Constants.CN].getText().isEmpty()) 		info += "CN=" + values[Constants.CN].getText();
+		if (!values[Constants.OU].getText().isEmpty())		info += ", OU=" + values[Constants.OU].getText();
+		if (!values[Constants.O].getText().isEmpty())		info += ", O=" + values[Constants.O].getText();
+		if (!values[Constants.L].getText().isEmpty())		info += ", L=" + values[Constants.L].getText();
+		if (!values[Constants.ST].getText().isEmpty())		info += ", ST = " + values[Constants.ST].getText();
+		if (!values[Constants.C].getText().isEmpty())		info += ", C=" + values[Constants.C].getText();
 		
 		return info;
+	}
+	
+	void setInfo(String info) {		
+		resetPanel();
+		String arr[] = info.split(",");
+		for (int i = 0; i < arr.length; i++){
+			String attr = arr[i];
+			String key_val[] = attr.split("=");
+			switch(key_val[0]) {
+				case "C": setValue(Constants.C, key_val[1]); break;
+				case "ST": setValue(Constants.ST, key_val[1]); break;
+				case "L": setValue(Constants.L, key_val[1]); break;
+				case "O": setValue(Constants.O, key_val[1]); break;
+				case "OU": setValue(Constants.OU, key_val[1]); break;
+				case "CN": setValue(Constants.CN, key_val[1]); break;
+			}
+		}
 	}
 
 }
