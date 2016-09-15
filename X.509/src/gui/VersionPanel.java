@@ -48,8 +48,11 @@ public class VersionPanel extends JPanel implements ActionListener {
 		selected = V1;
 		buttons[selected].setSelected(true);
 		
-		if (supported_version >= V2)
+		if (supported_version >= V2) {
 			enableV2();
+			if (supported_version >= V3)
+				enableV3();
+		}
 	}
 	
 	void enablePanel(boolean flag) {
@@ -68,6 +71,13 @@ public class VersionPanel extends JPanel implements ActionListener {
 			parent.issuer_panel.enableV2(true);
 		}
 	}
+	
+	void enableV3() {
+		if (selected < V2)
+			parent.extensions_panel.enablePanel(false);
+		else
+			parent.extensions_panel.enablePanel(true);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -77,8 +87,11 @@ public class VersionPanel extends JPanel implements ActionListener {
 				break;
 			} 
 		
-		if (supported_version >= V2)
-			enableV2();			
+		if (supported_version >= V2) {
+			enableV2();	
+			if (supported_version >= V3)
+				enableV3();
+		}
 	}
 	
 	// ********************************************************************************************************

@@ -23,7 +23,6 @@ public class MainFrame extends JFrame {
 
 	
 	MainFrame(boolean algorithm_conf[], int supported_version, CodeInterface code) {
-		// TODO
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setTitle("X.509 Certificate Manager");
 		setSize(1310, 670);
@@ -39,9 +38,9 @@ public class MainFrame extends JFrame {
 		subject_panel = new SubjectPanel(this);
 		validity_panel = new ValidityPanel();
 		public_key_panel = new PublicKeyPanel(this, algorithm_conf);
-		// V3 TODO
+		// V3
 		if (supported_version >= Constants.V3)
-			extensions_panel = new ExtensionsPanel();
+			extensions_panel = new ExtensionsPanel(this);
 		
 		getContentPane().add(toolbar_panel);
 		getContentPane().add(version_panel);
@@ -50,7 +49,7 @@ public class MainFrame extends JFrame {
 		getContentPane().add(validity_panel);
 		getContentPane().add(subject_panel);
 		getContentPane().add(public_key_panel);
-		// V3 TODO
+		// V3
 		if (supported_version >= Constants.V3)
 			getContentPane().add(extensions_panel);
 		
@@ -60,7 +59,7 @@ public class MainFrame extends JFrame {
 	}
 	
 	void resetPanel() {
-		toolbar_panel.resetPanel();
+		// toolbar_panel.resetPanel();
 		version_panel.resetPanel();
 		serial_number_panel.resetPanel();
 		issuer_panel.resetPanel();
@@ -72,7 +71,7 @@ public class MainFrame extends JFrame {
 	}
 	
 	void enablePanel(boolean flag) {
-		//toolbar_panel.enablePanel(flag);
+		// toolbar_panel.enablePanel(flag);
 		version_panel.enablePanel(flag);
 		serial_number_panel.enablePanel(flag);
 		issuer_panel.enablePanel(flag);
@@ -111,11 +110,17 @@ public class MainFrame extends JFrame {
 		}
 	String getPublicKeySignatureAlgorithm() { return public_key_panel.getSignatureAlgorithm(); }
 	
+	// V3
+	boolean isCritical(int i) { return extensions_panel.getCritical(i); }
+	String getPathLen() { return extensions_panel.basic_constraints_panel.getPathLen(); }
+	boolean isCA() { return extensions_panel.basic_constraints_panel.isCertificateAuthority(); }
+	
 	// ********************************************************************************************************
 	// 												SETTERS
 	// ********************************************************************************************************
 	
 	void enableSignButton(boolean flag) { toolbar_panel.manage_panel.enableSignButton(flag); }
+	void enableExportCertificateButton(boolean flag) { toolbar_panel.manage_panel.enableExportCertificateButton(flag); }
 
 	void addKeypair(String name) { toolbar_panel.keystore_panel.addKeypair(name); }
 	void loadKeystore(Enumeration<String> certificates) { toolbar_panel.keystore_panel.loadKeystore(certificates); }
@@ -139,6 +144,11 @@ public class MainFrame extends JFrame {
 			public_key_panel.setAlgorithmParameter(i, v);
 	}
 	void setPublicKeySignatureAlgorithm(String v) { public_key_panel.setSignatureAlgorithm(v); }
+	
+	// V3
+	void setCritical(int i, boolean v) { extensions_panel.setCritical(i, v); }
+	void setPathLen(String v) { extensions_panel.basic_constraints_panel.setPathLen(v); }
+	void setCA(boolean v) { extensions_panel.basic_constraints_panel.setCertificateAuthority(v); }
 	
 	
 }

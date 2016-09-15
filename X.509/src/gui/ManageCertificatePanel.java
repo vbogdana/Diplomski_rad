@@ -50,13 +50,11 @@ public class ManageCertificatePanel extends JPanel {
 		export_certificate.setEnabled(false);		
 	}
 	
-	void enablePanel(boolean flag) {
-		// TODO export treba da bude enableovan za potpisane i selektovane
-		// TODO sign treba da bude enableovan za nepotpisane i selektovane
-		export_certificate.setEnabled(false);
-	}
-	
 	void enableSignButton(boolean flag) {
 		sign.setEnabled(flag);
+	}
+	
+	void enableExportCertificateButton(boolean flag) {
+		export_certificate.setEnabled(flag);
 	}
 }

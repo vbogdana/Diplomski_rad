@@ -19,12 +19,12 @@ import org.bouncycastle.operator.OperatorCreationException;
 import code.GuiException;
 import x509.v3.CodeV3;
 
-public class MyCode extends CodeV3 {
+public class MyCodeV3 extends CodeV3 {
 	
 	private MyX509Cert current_cert;
 	private PrivateKeyEntry current_keyentry;
 	
-	public MyCode(boolean[] conf) throws GuiException {
+	public MyCodeV3(boolean[] conf) throws GuiException {
 		super(conf);		
 	}
 	
@@ -61,28 +61,31 @@ public class MyCode extends CodeV3 {
 	public boolean saveKey(String keypair_name) {
 		// TODO Auto-generated method stub
 		MyX509Cert cert = new MyX509Cert();
-		cert.setVersion(access.getVersion());
-		cert.setSerial_number(access.getSerialNumber());
-		cert.setDate_from(access.getNotBefore());
-		cert.setDate_to(access.getNotAfter());
-		cert.setAlgorithm(access.getPublicKeyAlgorithm());
-		cert.setParam(0, access.getPublicKeyParameter());
-		// will be needed in case of EC algorithm
-		cert.setParam(1, access.getPublicKeyECCurve());
-		cert.setSignature_algorithm(access.getPublicKeySignatureAlgorithm());
-		cert.setSubject(access.getSubject());
-		if (cert.getVersion() > Constants.V1)
-			cert.setSubject_ui(access.getSubjectUniqueIdentifier());
-			
+		cert.version = access.getVersion();
+		cert.serial_number = access.getSerialNumber();
+		cert.date_not_before = access.getNotBefore();
+		cert.date_not_after = access.getNotAfter();
+		cert.algorithm = access.getPublicKeyAlgorithm();
+		cert.params[0] = access.getPublicKeyParameter();	
+		cert.params[1] = access.getPublicKeyECCurve();		// will be needed in case of EC algorithm
+		cert.signature_algorithm = access.getPublicKeySignatureAlgorithm();
+		cert.subject = access.getSubject();
+				
 		try {
+			if (cert.version > Constants.V1) {
+				cert.subject_ui = access.getSubjectUniqueIdentifier();
+				if (cert.version > Constants.V2) {
+					// TODO
+					cert.generateBasicConstraint(access.isCritical(Constants.BC), access.isCA(), access.getPathLen());
+				}
+			}
+			
 			cert.generateKeypair();
 			cert.generateCertificate();
 			
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
-			MyKeyStore.putKey(keypair_name, cert.getKeypair().getPrivate(), cert.getCertificate(), MyKeyStore.localPassword);
+			MyKeyStore.putKey(keypair_name, cert.keypair.getPrivate(), cert.certificate, MyKeyStore.localPassword);
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
-			
-			access.addKeypair(keypair_name);
 		} catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException
 				| NoSuchProviderException | OperatorCreationException | CertificateException 
 				| KeyStoreException | IOException e) {
@@ -115,8 +118,7 @@ public class MyCode extends CodeV3 {
 		    if (i != 1) {
 		    	GuiInterface.reportError("File corrupted");
 		    	return false;
-		    }
-		    	
+		    }	    	
 		    
 			PrivateKeyEntry imported = MyKeyStore.getKey(file_name, password);
 			
@@ -127,8 +129,6 @@ public class MyCode extends CodeV3 {
 			}
 			MyKeyStore.putKey(keypair_name, imported.getPrivateKey(), imported.getCertificate(), MyKeyStore.localPassword);
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
-			
-			access.addKeypair(keypair_name);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
 			GuiInterface.reportError(e);
 			return false;
@@ -168,36 +168,42 @@ public class MyCode extends CodeV3 {
 
 	}
 		
-	public void loadCertificate(X509Certificate cert) {
+	public void loadCertificate(X509Certificate cert) throws IOException {
 		current_cert  = new MyX509Cert(cert);
 	
-		access.setVersion(current_cert.getVersion());
-		access.setSerialNumber(current_cert.getSerial_number());
-		access.setNotBefore(current_cert.getDate_from());
-		access.setNotAfter(current_cert.getDate_to());
-		access.setSubject(current_cert.getSubject());
+		access.setVersion(current_cert.version);
+		access.setSerialNumber(current_cert.serial_number);
+		access.setNotBefore(current_cert.date_not_before);
+		access.setNotAfter(current_cert.date_not_after);
+		access.setSubject(current_cert.subject);
 		
 		// ako je potpisan moras neki info da vratis i tada ucistavas issuera
 		// access.setIssuer(certificate.getIssuer());
 		// ako nije potpisan omogucavas sign
-		access.enableSignButton(true);
+		// access.enableSignButton(signed);
+		// access.enableExportButton(signed);
+
+		access.setSubjectSignatureAlgorithm(current_cert.signature_algorithm);
 		
-		//boolean uid[] = cert.getSubjectUniqueID();
-		access.setSubjectSignatureAlgorithm(current_cert.getSignature_algorithm());
-		
-		/*
-		access.setPublicKeyAlgorithm(certificate.getAlgorithm());
-		access.setPublicKeyParameter(certificate.getParam(0));
-		if (certificate.getAlgorithm().equals(MyX509Cert.EC))
-			access.setPublicKeyECCurve(certificate.getParam(1));
-		access.setPublicKeySignatureAlgorithm(certificate.getSignature_algorithm());
-		*/
-		
-		if (current_cert.getVersion() > Constants.V1) {
-			//access.setSubjectUniqueIdentifier(v);
-			//access.setIssuerUniqueIdentifier(v);
+		if (current_cert.version > Constants.V1) {
+			// access.setSubjectUniqueIdentifier(v);
+			// access.setIssuerUniqueIdentifier(v);
+			if (current_cert.version > Constants.V2) {
+				// Basic Constraints
+				access.setCritical(Constants.BC, current_cert.extensions[Constants.BC].isCritical());
+				if (current_cert.constraint == -1) {
+					access.setCA(false);
+					access.setPathLen("");
+				} else {
+					access.setCA(true);
+					if (current_cert.constraint == Integer.MAX_VALUE)
+						access.setPathLen("");
+					else
+						access.setPathLen(String.valueOf(current_cert.constraint));
+						
+				}
+			}
 			
-			// ekstenzije
 		}
 		
 

@@ -18,7 +18,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "unchecked", "rawtypes" })
 public class PublicKeyPanel extends JPanel implements ActionListener {
 	public static final int NUM_OF_ALGORITHMS = 4;
 	public static final int DSA_MIN = 512, DSA_STEP = 64, DSA_MAX = 2048, NUM_OF_DSA_LENGTHS = ((DSA_MAX - DSA_MIN) / DSA_STEP + 1);
@@ -75,6 +75,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 		
 		resetPanel();
 	}
+	
 	
 	private void initPanelData() {
 		for (int i = 0, j = DSA_MIN; j <= DSA_MAX; j += DSA_STEP, i++)

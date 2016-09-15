@@ -19,7 +19,7 @@ public class X509 {
 			// it should extend class CodeVX for jar file (X depends of a x509 supported version, it can be 1, 2 or 3)
 			// class CodeVX has a field access which represents an access point to the GUI using getters/setters
 			@SuppressWarnings("unused")
-			CodeInterface my_code = new MyCode(algorithm_conf);
+			CodeInterface my_code = new MyCodeV3(algorithm_conf);
 		} catch (GuiException e) {
 			// Handles frame construction exceptions
 			GuiInterface.reportError(e);

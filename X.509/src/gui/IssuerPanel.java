@@ -73,6 +73,8 @@ public class IssuerPanel extends InfoPanel {
 			values[i].setEnabled(flag);
 		}
 		*/
+		if (parent.version_panel.getSupportedVersion() < Constants.V2)
+			return;
 		
 		if (flag) {
 			if (parent.version_panel.getVersion() < Constants.V2)
@@ -80,10 +82,10 @@ public class IssuerPanel extends InfoPanel {
 			 else
 				 enableV2(true);
 		} else {
-			if (parent.version_panel.getVersion() > Constants.V1)
-				labels[Constants.UI].setEnabled(true);
-			else
+			if (parent.version_panel.getVersion() < Constants.V2)
 				labels[Constants.UI].setEnabled(false);
+			else
+				labels[Constants.UI].setEnabled(true);
 		}
 	}
 	

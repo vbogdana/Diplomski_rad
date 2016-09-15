@@ -66,6 +66,7 @@ public abstract class GuiInterface {
 	// ********************************************************************************************************
 	
 	public void enableSignButton(boolean flag) { window.enableSignButton(flag); }
+	public void enableExportButton(boolean flag) { window.enableExportCertificateButton(flag); }
 	
 	public void addKeypair(String name) { window.addKeypair(name); }
 	

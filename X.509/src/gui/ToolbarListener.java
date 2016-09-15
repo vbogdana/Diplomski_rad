@@ -41,18 +41,31 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	public void valueChanged(ListSelectionEvent ev) {
 		// TODO Auto-generated method stub
 		if (!ev.getValueIsAdjusting()) {
-			if (mainFrame.toolbar_panel.keystore_panel.getSelectedIndex() == 0) {
-				mainFrame.resetPanel();
+			if (mainFrame.toolbar_panel.keystore_panel.getSelectedIndex() == 0) {	
+				// reset
+				mainFrame.toolbar_panel.resetPanel();
+				mainFrame.resetPanel();				
+				// enable
 				mainFrame.enablePanel(true);
 				mainFrame.toolbar_panel.keystore_panel.enablePanel(false);
 				mainFrame.enableSignButton(false);
+				mainFrame.enableExportCertificateButton(false);
 			} else {
 				String keypair_name = (String) mainFrame.toolbar_panel.keystore_panel.getSelectedValue();
 				if (keypair_name == null)
 					return;
+				// reset
+				mainFrame.resetPanel();
 				if (code.loadKey(keypair_name)) {
+					// enable
 					mainFrame.enablePanel(false);
 					mainFrame.toolbar_panel.keystore_panel.enablePanel(true);
+					// ako je potpisan mora sign i export da se enableuje
+					// npr da load key vraca int vrednost koja nam to govori
+				} else {
+					// reset
+					mainFrame.toolbar_panel.resetPanel();
+					GuiInterface.reportError("Error while loading keypair from local KeyStore.");
 				}
 			}
 			
@@ -65,7 +78,10 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	}
 	
 	private void newKeypairPerformed() {
+		// reset
+		mainFrame.toolbar_panel.resetPanel();
 		mainFrame.resetPanel();
+		// enable
 		mainFrame.enablePanel(true);
 	}
 	
@@ -74,6 +90,8 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			((SubjectPanel) mainFrame.subject_panel).checkData();
 			mainFrame.serial_number_panel.checkData();
 			mainFrame.validity_panel.checkData();
+			if (mainFrame.version_panel.getSupportedVersion() >= Constants.V3)
+				mainFrame.extensions_panel.checkData();
 			
 			String keypair_name = JOptionPane.showInputDialog(mainFrame, "Name: ", null);
 			
@@ -83,8 +101,12 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			if (keypair_name.isEmpty())
 				throw new DataException("Invalid name.");
 			
-			if (code.saveKey(keypair_name))
+			if (code.saveKey(keypair_name)) {
+				mainFrame.addKeypair(keypair_name);
+				// reset
+				mainFrame.toolbar_panel.resetPanel();
 				mainFrame.resetPanel();
+			}
 		} catch (DataException e) {
 			GuiInterface.reportError(e);
 		}
@@ -110,9 +132,10 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			    if (password.equals("") || keypair_name.equals(""))
 			    	throw new DataException("Invalid password or name.");
 			    
-			    if (code.importKeypair(keypair_name, file.getAbsolutePath(), password))
+			    if (code.importKeypair(keypair_name, file.getAbsolutePath(), password)) {
+			    	mainFrame.addKeypair(keypair_name);
 			    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully imported!");
-			    
+			    }			    
 		    } catch (DataException e) {
 		    	GuiInterface.reportError(e);
 		    }
@@ -138,8 +161,9 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			    	throw new DataException("Invalid password.");
 			    
 			    String keypair_name = (String) mainFrame.toolbar_panel.keystore_panel.getSelectedValue();
-			    if (code.exportKeypair(keypair_name, file.getAbsolutePath(), password))
+			    if (code.exportKeypair(keypair_name, file.getAbsolutePath(), password)) {		    	
 			    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully exported!");
+			    }
 		    } catch (DataException e) {
 		    	GuiInterface.reportError(e);
 		    }
