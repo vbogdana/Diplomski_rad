@@ -29,7 +29,7 @@ public class SubjectPanel extends InfoPanel {
         setBorder(BorderFactory.createTitledBorder(b, "Certificate Subject"));
 		
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
+			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i] = new JTextField(40);
@@ -51,7 +51,7 @@ public class SubjectPanel extends InfoPanel {
 
 		values[Constants.SA].setEnabled(false);
 		// because at the start selected version is 1
-		if (parent.version_panel.getSupportedVersion() >= Constants.V2) {
+		if (parent.supported_version >= Constants.V2) {
 			labels[Constants.UI].setEnabled(false);
 			values[Constants.UI].setEnabled(false);
 		}
@@ -60,7 +60,7 @@ public class SubjectPanel extends InfoPanel {
 	void resetPanel() {
 		// TODO
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
+			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i].setText("");
@@ -73,7 +73,7 @@ public class SubjectPanel extends InfoPanel {
 	void enablePanel(boolean flag) {
 		// TODO check zbog v2
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
+			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i].setEnabled(flag);
@@ -81,7 +81,7 @@ public class SubjectPanel extends InfoPanel {
 
 		if (flag) {
 			values[Constants.SA].setEnabled(false);
-			if (parent.version_panel.getSupportedVersion() < Constants.V2)
+			if (parent.supported_version < Constants.V2)
 				return;
 
 			if (parent.version_panel.getVersion() < Constants.V2)
@@ -89,7 +89,7 @@ public class SubjectPanel extends InfoPanel {
 			else
 				enableV2(true);
 		} else {
-			if (parent.version_panel.getSupportedVersion() < Constants.V2)
+			if (parent.supported_version < Constants.V2)
 				return;
 
 			if (parent.version_panel.getVersion() < Constants.V2)

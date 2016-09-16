@@ -39,7 +39,6 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 
 	@Override
 	public void valueChanged(ListSelectionEvent ev) {
-		// TODO Auto-generated method stub
 		if (!ev.getValueIsAdjusting()) {
 			if (mainFrame.toolbar_panel.keystore_panel.getSelectedIndex() == 0) {	
 				// reset
@@ -51,7 +50,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 				mainFrame.enableSignButton(false);
 				mainFrame.enableExportCertificateButton(false);
 			} else {
-				String keypair_name = (String) mainFrame.toolbar_panel.keystore_panel.getSelectedValue();
+				String keypair_name = mainFrame.toolbar_panel.keystore_panel.getSelectedValue();
 				if (keypair_name == null)
 					return;
 				// reset
@@ -60,6 +59,8 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 					// enable
 					mainFrame.enablePanel(false);
 					mainFrame.toolbar_panel.keystore_panel.enablePanel(true);
+					// TODO
+					mainFrame.enableSignButton(true);
 					// ako je potpisan mora sign i export da se enableuje
 					// npr da load key vraca int vrednost koja nam to govori
 				} else {
@@ -90,7 +91,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			((SubjectPanel) mainFrame.subject_panel).checkData();
 			mainFrame.serial_number_panel.checkData();
 			mainFrame.validity_panel.checkData();
-			if (mainFrame.version_panel.getSupportedVersion() >= Constants.V3)
+			if (mainFrame.supported_version >= Constants.V3)
 				mainFrame.extensions_panel.checkData();
 			
 			String keypair_name = JOptionPane.showInputDialog(mainFrame, "Name: ", null);
@@ -160,7 +161,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			    if (password.equals(""))
 			    	throw new DataException("Invalid password.");
 			    
-			    String keypair_name = (String) mainFrame.toolbar_panel.keystore_panel.getSelectedValue();
+			    String keypair_name = mainFrame.toolbar_panel.keystore_panel.getSelectedValue();
 			    if (code.exportKeypair(keypair_name, file.getAbsolutePath(), password)) {		    	
 			    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully exported!");
 			    }
@@ -172,7 +173,11 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	
 	private void signCertificatePerformed() {
 		// TODO
-		code.signCertificate();
+		if (code.generateCSR(mainFrame.toolbar_panel.keystore_panel.getSelectedValue()))
+			new SignRequestPanel(mainFrame, code);
+		else
+			GuiInterface.reportError("Error while generating certificate signing request.");
+		// da li resetovati tablu posle ili ponovo loadovati taj keypair
 	}
 	
 	private void importCertificatePerformed() {

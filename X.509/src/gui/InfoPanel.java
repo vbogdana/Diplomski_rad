@@ -20,7 +20,7 @@ public abstract class InfoPanel extends JPanel {
 		labels[Constants.OU] = new JLabel("Organization Unit (OU):");
 		labels[Constants.SA] = new JLabel("Signature Algorithm:");		
 		// TODO
-		if (parent.version_panel.getSupportedVersion() >= VersionPanel.V2)
+		if (parent.supported_version >= VersionPanel.V2)
 			labels[Constants.UI] = new JLabel("Unique identifier:");		
 		
 	}

@@ -276,7 +276,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 
 	}
 	
-	public void setAlgorithmParameter(int i, String v) {
+	void setAlgorithmParameter(int i, String v) {
 		// TODO Auto-generated method stub
 		if (i == 0) {
 			for (int j = 0; j < parameters[algorithm].getItemCount(); j++)
@@ -297,7 +297,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 		return (String) hash_algorithms[algorithm].getSelectedItem();
 	}
 
-	public void setSignatureAlgorithm(String v) {
+	void setSignatureAlgorithm(String v) {
 		// TODO Auto-generated method stub
 		for (int j = 0; j < hash_algorithms[algorithm].getItemCount(); j++)
 			if (((String) hash_algorithms[algorithm].getItemAt(j)).equals(v)) {

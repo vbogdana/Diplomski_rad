@@ -1,7 +1,6 @@
 package gui;
 
 import java.awt.GridLayout;
-import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Properties;
@@ -80,10 +79,6 @@ public class ValidityPanel extends JPanel {
 	// ********************************************************************************************************
 	// 										GETTERS AND SETTERS
 	// ********************************************************************************************************
-	
-	String getDateS(int i) throws ParseException {
-		return dateFormatter.valueToString(dateModel[i].getValue());
-	}
 	
 	Date getDate(int i) {
 		return dateModel[i].getValue();

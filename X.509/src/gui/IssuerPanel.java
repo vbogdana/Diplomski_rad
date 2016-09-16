@@ -26,7 +26,7 @@ public class IssuerPanel extends InfoPanel {
         setBorder(BorderFactory.createTitledBorder(b, "Issued by"));
 		
 		for (int i = 0; i < 8; i++) {	
-			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
+			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i] = new JLabel("");
@@ -47,7 +47,7 @@ public class IssuerPanel extends InfoPanel {
 		}
 		
 		// because at the start selected version is 1
-		if (parent.version_panel.getSupportedVersion() >= Constants.V2) {
+		if (parent.supported_version >= Constants.V2) {
 			labels[Constants.UI].setEnabled(false);
 			values[Constants.UI].setEnabled(false);
 		}
@@ -55,7 +55,7 @@ public class IssuerPanel extends InfoPanel {
 	
 	void resetPanel() {
 		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
+			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
 			values[i].setText("");
@@ -73,7 +73,7 @@ public class IssuerPanel extends InfoPanel {
 			values[i].setEnabled(flag);
 		}
 		*/
-		if (parent.version_panel.getSupportedVersion() < Constants.V2)
+		if (parent.supported_version < Constants.V2)
 			return;
 		
 		if (flag) {

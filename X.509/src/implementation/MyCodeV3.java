@@ -2,7 +2,6 @@ package implementation;
 
 import gui.Constants;
 import gui.GuiInterface;
-
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore.PrivateKeyEntry;
@@ -10,12 +9,14 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Enumeration;
-
+import java.util.List;
 import org.bouncycastle.operator.OperatorCreationException;
-
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import code.GuiException;
 import x509.v3.CodeV3;
 
@@ -23,6 +24,7 @@ public class MyCodeV3 extends CodeV3 {
 	
 	private MyX509Cert current_cert;
 	private PrivateKeyEntry current_keyentry;
+	PKCS10CertificationRequest current_csr;
 	
 	public MyCodeV3(boolean[] conf) throws GuiException {
 		super(conf);		
@@ -59,7 +61,6 @@ public class MyCodeV3 extends CodeV3 {
 
 	@Override
 	public boolean saveKey(String keypair_name) {
-		// TODO Auto-generated method stub
 		MyX509Cert cert = new MyX509Cert();
 		cert.version = access.getVersion();
 		cert.serial_number = access.getSerialNumber();
@@ -202,10 +203,63 @@ public class MyCodeV3 extends CodeV3 {
 						access.setPathLen(String.valueOf(current_cert.constraint));
 						
 				}
-			}
-			
+			}			
 		}
-		
+	}
 
+	@Override
+	public String getIssuer(String keypair_name) {
+		// TODO
+		try {
+			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+			PrivateKeyEntry cert_issuer_key = MyKeyStore.getKey(keypair_name, MyKeyStore.localPassword);
+			X509Certificate cert_issuer = (X509Certificate) cert_issuer_key.getCertificate();
+			
+			String issuer = cert_issuer.getSubjectX500Principal().getName();
+			return issuer;
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
+			GuiInterface.reportError(e);
+		}
+		return "";
+	}
+	
+	@Override
+	public List<String> getIssuers() {
+		// TODO
+		List<String> valid = new ArrayList<String> ();
+		try {
+			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+			Enumeration<String> certs = MyKeyStore.ks.aliases();
+			
+			while (certs.hasMoreElements()){
+				String alias = certs.nextElement();			
+				PrivateKeyEntry local_entry = MyKeyStore.getKey(alias, MyKeyStore.localPassword);
+				Certificate [] cert_chain = local_entry.getCertificateChain();
+				boolean isValid = MyX509Cert.verify((X509Certificate[]) cert_chain);
+				if (isValid)
+					valid.add(alias);
+			}			
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
+			GuiInterface.reportError(e);
+		}
+		return valid;
+	}
+
+	@Override
+	public boolean generateCSR(String keypair_name) {
+		// TODO Auto-generated method stub
+		try {
+			/*
+			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+			PrivateKeyEntry entry = MyKeyStore.getKey(keypair_name, MyKeyStore.localPassword);
+			MyX509Cert cert = new MyX509Cert((X509Certificate) entry.getCertificate());
+			*/
+			current_csr = current_cert.generateCSR(current_keyentry.getPrivateKey());
+		} catch (OperatorCreationException e) {
+			GuiInterface.reportError(e);
+			return false;
+		}
+		return true;
+		
 	}
 }

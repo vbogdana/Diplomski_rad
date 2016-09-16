@@ -5,22 +5,29 @@ import gui.Constants;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Date;
 import java.util.Set;
 
+import javax.security.auth.x500.X500Principal;
+
 import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -33,6 +40,9 @@ import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
 public class MyX509Cert {
 	public static final String PROVIDER = "BC";
@@ -59,6 +69,61 @@ public class MyX509Cert {
 	
 	Extension [] extensions = new Extension [Constants.NUM_OF_EXTENSIONS];;
 	int constraint;
+	
+	/**************************************************************************************
+	 										STATIC
+	 *************************************************************************************/
+	
+	public static boolean isCritical(X509Certificate certificate, String oid) {
+		Set<String> criticals = certificate.getCriticalExtensionOIDs();
+		return (criticals == null ? false : criticals.contains(oid));
+	}
+	
+	public static boolean verify(X509Certificate [] chain) {
+		if (isSelfSigned(chain[0]))
+           return true;
+		
+		if (chain.length == 1)
+			return false;
+		
+		if (!isSelfSigned(chain[chain.length - 1]))
+			return false;
+		
+		for (int i = chain.length - 2; i > 0; i--)
+			if (isSelfSigned(chain[i]))
+				return false;
+			else if (!checkSign(chain[i - 1], chain[i]))
+				return false;
+
+		return true;		
+	}
+	
+	public static boolean isSelfSigned(X509Certificate certificate) {
+		try {
+			certificate.checkValidity();
+			certificate.verify(certificate.getPublicKey());
+			int constraint = certificate.getBasicConstraints();
+			if (constraint == -1)
+				return false;
+			if (!isCritical(certificate, MyX509Cert.BasicConstraintsOID))
+				return false;
+			return true;
+		} catch (InvalidKeyException | CertificateException | NoSuchAlgorithmException | NoSuchProviderException| SignatureException e) {
+			return false;
+		}
+    }
+	
+	public static boolean checkSign(X509Certificate subject, X509Certificate issuer) {
+		try {
+			// TODO
+			// da li ovde treba proveravati constraint i criticality
+			issuer.checkValidity();
+			subject.verify(issuer.getPublicKey());
+			return true;
+		} catch (InvalidKeyException | CertificateException | NoSuchAlgorithmException | NoSuchProviderException| SignatureException e) {
+			return false;
+		}
+	}
 	
 	public MyX509Cert() {}
 	
@@ -161,12 +226,33 @@ public class MyX509Cert {
 			certv3 = new X509v3CertificateBuilder(name, new BigInteger(serial_number), date_not_before, date_not_after, name, subPubKeyInfo);
 			
 			//if (subject_ui != null)				cert.setSubjectUniqueID(boolean[] uid);
-			for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++)
-				if (extensions[i] != null) 			certv3.addExtension(extensions[i]);
+			if (version > V2) {
+				for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++)
+					if (extensions[i] != null) 			certv3.addExtension(extensions[i]);
+			}
 			
 			holder = certv3.build(sigGen);
 		}				
 		certificate = new JcaX509CertificateConverter().getCertificate(holder);
+	}
+	
+	public PKCS10CertificationRequest generateCSR(PrivateKey privateKey) throws OperatorCreationException {
+		// TODO Auto-generated method stub
+		X500Principal subject = certificate.getSubjectX500Principal();		
+		ContentSigner signGen = new JcaContentSignerBuilder(certificate.getSigAlgName()).setProvider(new BouncyCastleProvider()).build(privateKey);
+		PKCS10CertificationRequestBuilder builder = new JcaPKCS10CertificationRequestBuilder(subject, certificate.getPublicKey());		
+		if (version > V1) {
+			//if (subject_ui != null)				cert.setSubjectUniqueID(boolean[] uid);
+			if (version > V2) {			
+				
+				ExtensionsGenerator extensionsGenerator = new ExtensionsGenerator();
+				for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++)
+					if (extensions[i] != null) 			extensionsGenerator.addExtension(extensions[i]);
+				builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensionsGenerator.generate());
+			}
+		}	
+		PKCS10CertificationRequest csr = builder.build(signGen);		
+		return csr;
 	}
 	
 	public void generateBasicConstraint(boolean isCritical, boolean isCA, String pathLen) throws IOException{
@@ -182,7 +268,7 @@ public class MyX509Cert {
 	
 	public void getBasicConstraint() throws IOException {
 		constraint = certificate.getBasicConstraints();
-		boolean critical = isCritical(MyX509Cert.BasicConstraintsOID);
+		boolean critical = isCritical(certificate, MyX509Cert.BasicConstraintsOID);
 		// ako je CA true - samo oni koji su i critical sluze za potpisivanje
 		
 		if (constraint != -1) {
@@ -194,9 +280,5 @@ public class MyX509Cert {
 			extensions[Constants.BC] = new Extension(Extension.basicConstraints, critical, new DEROctetString(new BasicConstraints(false)));
 		}		
 	}
-	
-	public boolean isCritical(String oid) {
-		Set<String> criticals = certificate.getCriticalExtensionOIDs();
-		return (criticals == null ? false : criticals.contains(oid));
-	}
+
 }

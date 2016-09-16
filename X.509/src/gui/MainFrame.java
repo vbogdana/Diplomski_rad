@@ -10,6 +10,7 @@ import code.CodeInterface;
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame {
+	int supported_version;
 	
 	ToolbarPanel toolbar_panel;											// KEYSTORE PANEL	
 	VersionPanel version_panel;											// VERSION PANEL	
@@ -29,6 +30,8 @@ public class MainFrame extends JFrame {
 		setLocation(30, 30);
 		setFont(Font.getFont("Times New Roman"));
 		getContentPane().setLayout(null);
+		
+		this.supported_version = supported_version;
 		
 		// configuration constructors
 		toolbar_panel = new ToolbarPanel(this, code);
@@ -66,7 +69,7 @@ public class MainFrame extends JFrame {
 		subject_panel.resetPanel();
 		validity_panel.resetPanel();
 		public_key_panel.resetPanel();
-		if (version_panel.getSupportedVersion() >= Constants.V3)
+		if (supported_version >= Constants.V3)
 			extensions_panel.resetPanel();
 	}
 	
@@ -78,7 +81,7 @@ public class MainFrame extends JFrame {
 		subject_panel.enablePanel(flag);
 		validity_panel.enablePanel(flag);
 		public_key_panel.enablePanel(flag);
-		if (version_panel.getSupportedVersion() >= Constants.V3)
+		if (supported_version >= Constants.V3)
 			extensions_panel.enablePanel(flag);
 	}
 
@@ -111,9 +114,9 @@ public class MainFrame extends JFrame {
 	String getPublicKeySignatureAlgorithm() { return public_key_panel.getSignatureAlgorithm(); }
 	
 	// V3
-	boolean isCritical(int i) { return extensions_panel.getCritical(i); }
-	String getPathLen() { return extensions_panel.basic_constraints_panel.getPathLen(); }
-	boolean isCA() { return extensions_panel.basic_constraints_panel.isCertificateAuthority(); }
+	boolean isCritical(int i) { return ((supported_version >= Constants.V3) ? extensions_panel.getCritical(i) : false); }
+	String getPathLen() { return ((supported_version >= Constants.V3) ? extensions_panel.basic_constraints_panel.getPathLen() : ""); }
+	boolean isCA() { return ((supported_version >= Constants.V3) ? extensions_panel.basic_constraints_panel.isCertificateAuthority() : false); }
 	
 	// ********************************************************************************************************
 	// 												SETTERS
@@ -146,9 +149,9 @@ public class MainFrame extends JFrame {
 	void setPublicKeySignatureAlgorithm(String v) { public_key_panel.setSignatureAlgorithm(v); }
 	
 	// V3
-	void setCritical(int i, boolean v) { extensions_panel.setCritical(i, v); }
-	void setPathLen(String v) { extensions_panel.basic_constraints_panel.setPathLen(v); }
-	void setCA(boolean v) { extensions_panel.basic_constraints_panel.setCertificateAuthority(v); }
+	void setCritical(int i, boolean v) { if (supported_version >= Constants.V3) extensions_panel.setCritical(i, v); }
+	void setPathLen(String v) { if (supported_version >= Constants.V3) extensions_panel.basic_constraints_panel.setPathLen(v); }
+	void setCA(boolean v) { if (supported_version >= Constants.V3) extensions_panel.basic_constraints_panel.setCertificateAuthority(v); }
 	
 	
 }

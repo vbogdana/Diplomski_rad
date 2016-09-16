@@ -97,11 +97,11 @@ public class KeyStorePanel extends JPanel {
 		keystore_model.addElement(name);		
 	}
 
-	public int getSelectedIndex() {
+	int getSelectedIndex() {
 		return keystore_list.getSelectedIndex();
 	}
 	
-	public String getSelectedValue() {
+	String getSelectedValue() {
 		return keystore_list.getSelectedValue();
 	}
 

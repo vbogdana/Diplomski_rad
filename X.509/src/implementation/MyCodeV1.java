@@ -1,6 +1,7 @@
 package implementation;
 
 import java.util.Enumeration;
+import java.util.List;
 
 import code.GuiException;
 import x509.v1.CodeV1;
@@ -65,6 +66,25 @@ public class MyCodeV1 extends CodeV1 {
 	@Override
 	public void exportCertificate() {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getIssuer(String keypair_name) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> getIssuers() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean generateCSR(String keypair_name) {
+		// TODO Auto-generated method stub
+		return false;
 		
 	}
 
