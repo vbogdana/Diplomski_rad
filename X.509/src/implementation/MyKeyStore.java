@@ -125,6 +125,7 @@ public class MyKeyStore {
 		KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
 		
 		KeyStore.PrivateKeyEntry entry = new KeyStore.PrivateKeyEntry(key, chain);
+		ks.deleteEntry(keypair_name);
 		ks.setEntry(keypair_name, entry, protParam);
 	}
 

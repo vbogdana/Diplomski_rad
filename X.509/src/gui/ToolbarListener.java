@@ -55,14 +55,14 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 					return;
 				// reset
 				mainFrame.resetPanel();
-				if (code.loadKey(keypair_name)) {
+				int signed = code.loadKey(keypair_name); 
+				if (signed != -1) {
 					// enable
 					mainFrame.enablePanel(false);
 					mainFrame.toolbar_panel.keystore_panel.enablePanel(true);
 					// TODO
+					mainFrame.enableExportCertificateButton(signed > 0);
 					mainFrame.enableSignButton(true);
-					// ako je potpisan mora sign i export da se enableuje
-					// npr da load key vraca int vrednost koja nam to govori
 				} else {
 					// reset
 					mainFrame.toolbar_panel.resetPanel();
@@ -114,7 +114,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	}
 	
 	private void importKeypairPerformed() {
-		JFileChooser fileChooser = new JFileChooser(); // change default path "E:\\SI4ZP\\projekat\\test"
+		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
 		fileChooser.setFileFilter(new FileNameExtensionFilter(".p12", "p12"));
 		fileChooser.setAcceptAllFileFilterUsed(false);
@@ -144,7 +144,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	}
 	
 	private void exportKeypairPerformed() {
-		JFileChooser fileChooser = new JFileChooser(); // change default path "E:\\SI4ZP\\projekat\\test"
+		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
 		fileChooser.setFileFilter(new FileNameExtensionFilter(".p12", "p12"));
 		fileChooser.setAcceptAllFileFilterUsed(false);
@@ -172,22 +172,56 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	}
 	
 	private void signCertificatePerformed() {
-		// TODO
 		if (code.generateCSR(mainFrame.toolbar_panel.keystore_panel.getSelectedValue()))
 			new SignRequestPanel(mainFrame, code);
 		else
 			GuiInterface.reportError("Error while generating certificate signing request.");
-		// da li resetovati tablu posle ili ponovo loadovati taj keypair
+		mainFrame.toolbar_panel.resetPanel();
 	}
 	
 	private void importCertificatePerformed() {
-		// TODO
-		code.importCertificate();		
+		// TODO import certificate
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+		fileChooser.setFileFilter(new FileNameExtensionFilter("Certificate", "cer"));
+		fileChooser.setAcceptAllFileFilterUsed(false);
+		 
+		int userSelection = fileChooser.showOpenDialog(null);
+		 
+		if (userSelection == JFileChooser.APPROVE_OPTION) {
+		    // File file = fileChooser.getSelectedFile();	
+		    /*
+		    try {
+		    	
+			    if (code.importCertificate()) {
+			    	mainFrame.addKeypair(keypair_name);
+			    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully imported!");
+			    }
+			    			    
+		    } catch (DataException e) {
+		    	GuiInterface.reportError(e);
+		    }
+		    */
+		}
+				
 	}
 	
 	private void exportCertificatePerformed() {
-		// TODO
-		code.exportCertificate();
+		// TODO export certificate
+		//String format;
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+		fileChooser.setFileFilter(new FileNameExtensionFilter("Certificate" , "cer"));
+		fileChooser.setAcceptAllFileFilterUsed(false);
+		 
+		int userSelection = fileChooser.showSaveDialog(null);
+		 
+		if (userSelection == JFileChooser.APPROVE_OPTION) {
+		    File fileToSave = fileChooser.getSelectedFile();
+		    code.exportCertificate(fileToSave, "DER");
+		    
+		}
+		
 	}
 
 }

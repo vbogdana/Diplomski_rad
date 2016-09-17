@@ -1,5 +1,6 @@
 package implementation;
 
+import java.io.File;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -20,9 +21,9 @@ public class MyCodeV1 extends CodeV1 {
 	}
 
 	@Override
-	public boolean loadKey(String keypair_name) {
+	public int loadKey(String keypair_name) {
 		// TODO Auto-generated method stub
-		return false;
+		return -1;
 	}
 
 	@Override
@@ -52,9 +53,9 @@ public class MyCodeV1 extends CodeV1 {
 	}
 
 	@Override
-	public void signCertificate() {
+	public boolean signCertificate(String issuer) {
 		// TODO Auto-generated method stub
-		
+		return false;
 	}
 
 	@Override
@@ -64,7 +65,7 @@ public class MyCodeV1 extends CodeV1 {
 	}
 
 	@Override
-	public void exportCertificate() {
+	public void exportCertificate(File file, String format) {
 		// TODO Auto-generated method stub
 		
 	}
