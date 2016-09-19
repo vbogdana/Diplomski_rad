@@ -23,6 +23,7 @@ import java.util.Set;
 import javax.security.auth.x500.X500Principal;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSet;
@@ -30,16 +31,21 @@ import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.ExtensionsGenerator;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v1CertificateBuilder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECParameterSpec;
@@ -72,13 +78,7 @@ public class MyX509Cert {
 														 Extension.cRLDistributionPoints,
 														 Extension.inhibitAnyPolicy,
 														 Extension.freshestCRL 
-														};
-	public static final String [] OIDS = { "2.5.29.19" };
-	public static final String BasicConstraintsOID = "2.5.29.19";
-	public static final String KeyUsageOID = "2.5.29.15";
-	public static final String IssuerAlternativeName = "2.5.29.18";
-	
-	
+														};		
 	X509Certificate certificate;
 	KeyPair keypair;
 	SubjectPublicKeyInfo subPubKeyInfo;
@@ -93,6 +93,8 @@ public class MyX509Cert {
 	
 	Extension [] extensions = new Extension [Constants.NUM_OF_EXTENSIONS];;
 	int constraint;
+	AuthorityKeyIdentifier akid;
+	SubjectKeyIdentifier skid;
 	
 	/**************************************************************************************
 	 										STATIC
@@ -135,7 +137,7 @@ public class MyX509Cert {
 			if (constraint == -1)
 				return false;
 			// only certificates with critical basic constraints can sign other certificates
-			if (!isCritical(certificate, OIDS[Constants.BC]))
+			if (!isCritical(certificate, asn1[Constants.BC].getId()))
 				return false;
 			return true;
 		} catch (InvalidKeyException | CertificateException | NoSuchAlgorithmException | NoSuchProviderException| SignatureException e) {
@@ -152,6 +154,27 @@ public class MyX509Cert {
 			return false;
 		}
 	}
+	
+	public static byte[] extractSubjectKeyIdentifier(X509Certificate certificate) throws IOException {
+		//boolean critical = isCritical(certificate, asn1[Constants.SKID].getId());
+		byte[] extvalue = getCoreExtValue(certificate, asn1[Constants.SKID]);
+		if (extvalue != null) {
+			SubjectKeyIdentifier skid = SubjectKeyIdentifier.getInstance(extvalue);
+			return skid.getKeyIdentifier();
+		}
+		return null;
+	}
+	
+	public static Extension generateAuthorityKeyIdentifier(boolean critical, byte[] keyID, String issuer, BigInteger serial_number) throws NoSuchAlgorithmException, IOException {
+		GeneralNames issuerName = new GeneralNames(new GeneralName(GeneralName.directoryName, issuer));
+		AuthorityKeyIdentifier akid = new AuthorityKeyIdentifier(keyID, issuerName, serial_number);
+		return new Extension(asn1[Constants.AKID], critical, new DEROctetString(akid));
+		
+	}
+	
+	/*****************************************************************************************************
+	 										NON STATICS
+	 ****************************************************************************************************/
 	
 	public MyX509Cert() {}
 	
@@ -174,6 +197,8 @@ public class MyX509Cert {
 			if (version > V2) {				
 				// TODO zbog V3 i V2
 				getBasicConstraint();
+				getAuthorityKeyIdentifier();
+				getSubjectKeyIdentifier();
 			}
 		}
 		/*	
@@ -346,22 +371,33 @@ public class MyX509Cert {
 		return info;
 	}
 	
-	public void generateBasicConstraint(boolean isCritical, boolean isCA, String pathLen) throws IOException{
+	/************************************************************************************************************
+	 							TODO		EXTENSIONS
+	 ***********************************************************************************************************/
+
+	private static byte[] getCoreExtValue(X509Certificate cert, ASN1ObjectIdentifier type) {
+		byte[] fullExtValue = cert.getExtensionValue(type.getId());
+		if (fullExtValue == null) {
+			return null;
+		} else
+			return ASN1OctetString.getInstance(fullExtValue).getOctets();
+	}
+
+	 public void generateBasicConstraint(boolean critical, boolean isCA, String pathLen) throws IOException{
 		// pathLen imaju samo oni sertifikati sa CA true i keyCertSign true
+		// TODO basic constraint
 		if (isCA) {
 			if (pathLen == null || pathLen.isEmpty())
-				extensions[Constants.BC] = new Extension(asn1[Constants.BC], isCritical, new DEROctetString(new BasicConstraints(isCA)));
+				extensions[Constants.BC] = new Extension(asn1[Constants.BC], critical, new DEROctetString(new BasicConstraints(isCA)));
 			else
-				extensions[Constants.BC] = new Extension(asn1[Constants.BC], isCritical, new DEROctetString(new BasicConstraints(Integer.parseInt(pathLen))));
+				extensions[Constants.BC] = new Extension(asn1[Constants.BC], critical, new DEROctetString(new BasicConstraints(Integer.parseInt(pathLen))));
 		} else
-			extensions[Constants.BC] = new Extension(asn1[Constants.BC], isCritical, new DEROctetString(new BasicConstraints(isCA)));
+			extensions[Constants.BC] = new Extension(asn1[Constants.BC], critical, new DEROctetString(new BasicConstraints(isCA)));
 	}
 	
 	public void getBasicConstraint() throws IOException {
 		constraint = certificate.getBasicConstraints();
-		boolean critical = isCritical(certificate, OIDS[Constants.BC]);
-		// if the CA boolean is true - only the ones with critical boolean true can be used for signing other certificates
-		
+		boolean critical = isCritical(certificate, asn1[Constants.BC].getId());		
 		if (constraint != -1) {
 			if (constraint == Integer.MAX_VALUE)
 				extensions[Constants.BC] = new Extension(asn1[Constants.BC], critical, new DEROctetString(new BasicConstraints(true)));
@@ -370,6 +406,42 @@ public class MyX509Cert {
 		} else {
 			extensions[Constants.BC] = new Extension(asn1[Constants.BC], critical, new DEROctetString(new BasicConstraints(false)));
 		}		
+	}
+	
+	public void generateAuthorityKeyIdentifier(boolean critical) throws NoSuchAlgorithmException, IOException {
+		JcaX509ExtensionUtils utils;
+		utils = new JcaX509ExtensionUtils();
+		GeneralNames issuerName = new GeneralNames(new GeneralName(GeneralName.directoryName, issuer));
+		AuthorityKeyIdentifier akid = utils.createAuthorityKeyIdentifier(keypair.getPublic());
+		akid = new AuthorityKeyIdentifier(akid.getKeyIdentifier(), issuerName, new BigInteger(serial_number));
+		extensions[Constants.AKID] = new Extension(asn1[Constants.AKID], critical, new DEROctetString(akid));
+		
+	}
+	
+	public void getAuthorityKeyIdentifier() throws IOException {
+		boolean critical = isCritical(certificate, asn1[Constants.AKID].getId()); 
+		byte[] extvalue = getCoreExtValue(certificate, asn1[Constants.AKID]);
+		if (extvalue != null) {
+			akid = AuthorityKeyIdentifier.getInstance(extvalue);
+			extensions[Constants.AKID] = new Extension(asn1[Constants.AKID], critical, new DEROctetString(akid));
+		}
+	}
+	
+	public void generateSubjectKeyIdentifier(boolean critical) throws NoSuchAlgorithmException, IOException {
+		JcaX509ExtensionUtils utils;
+		utils = new JcaX509ExtensionUtils();
+		SubjectKeyIdentifier skid = utils.createSubjectKeyIdentifier(keypair.getPublic());
+		extensions[Constants.SKID] = new Extension(asn1[Constants.SKID], critical, new DEROctetString(skid));		
+	}
+	
+	public void getSubjectKeyIdentifier() throws IOException {
+		boolean critical = isCritical(certificate, asn1[Constants.SKID].getId());
+		byte[] extvalue = getCoreExtValue(certificate, asn1[Constants.SKID]);
+		if (extvalue != null) {
+			skid = SubjectKeyIdentifier.getInstance(extvalue);
+			extensions[Constants.SKID] = new Extension(asn1[Constants.SKID], critical, new DEROctetString(skid));
+		}
+		
 	}
 
 }

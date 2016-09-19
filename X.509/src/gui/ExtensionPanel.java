@@ -2,8 +2,6 @@ package gui;
 
 
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
@@ -26,12 +24,6 @@ public abstract class ExtensionPanel extends JPanel {
 		isCritical.setBackground(new Color(204,215,224));
 		isCritical.setSelected(false);
 		isCritical.setEnabled(false);
-		isCritical.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				mainFrame.extensions_panel.setIsCritical(i, isCritical.isSelected());
-			}
-		});
 		add(isCritical);
 		
 		panel = new JPanel();

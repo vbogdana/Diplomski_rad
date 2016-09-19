@@ -65,7 +65,7 @@ public class MyCodeV1 extends CodeV1 {
 	}
 
 	@Override
-	public void exportCertificate(File file, String format) {
+	public void exportCertificate(File file, int encoding) {
 		// TODO Auto-generated method stub
 		
 	}

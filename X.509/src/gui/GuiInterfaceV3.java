@@ -16,7 +16,7 @@ public abstract class GuiInterfaceV3 extends GuiInterfaceV2 {
 	public boolean isCritical(int i) { return window.isCritical(i); }
 	public String getPathLen() { return window.getPathLen(); }
 	public boolean isCA() { return window.isCA(); }
-	
+	public boolean getEnabledKeyIdentifiers() { return window.getEnabledKID(); }
 	
 	
 	// ********************************************************************************************************
@@ -25,5 +25,10 @@ public abstract class GuiInterfaceV3 extends GuiInterfaceV2 {
 	public void setCritical(int i, boolean v) { window.setCritical(i, v); }
 	public void setPathLen(String v) { window.setPathLen(v); }
 	public void setCA(boolean v) { window.setCA(v); }
+	public void setEnabledKeyIdentifiers(boolean v) { window.setEnabledKID(v); }
+	public void setAuthorityKeyID(String authorityKeyID) { window.setAuthorityKeyID(authorityKeyID); }
+	public void setAuthorityIssuer(String authorityIssuer) { window.setAuthorityIssuer(authorityIssuer); }
+	public void setAuthoritySerialNumber(String authoritySerialNumber) { window.setAuthoritySerialNumber(authoritySerialNumber); }
+	public void setSubjectKeyID(String subjectKeyID) { window.setSubjectKeyID(subjectKeyID); }
 
 }

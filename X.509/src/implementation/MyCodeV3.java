@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -60,9 +61,9 @@ public class MyCodeV3 extends CodeV3 {
 		try {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			PrivateKeyEntry entry = MyKeyStore.getKey(keypair_name, MyKeyStore.localPassword);
-			X509Certificate cert = (X509Certificate) entry.getCertificate();
-			current_keyentry = entry;
+			X509Certificate cert = (X509Certificate) entry.getCertificate();		
 			current_cert  = new MyX509Cert(cert);
+			current_keyentry = entry;
 			current_alias = keypair_name;
 			signed = loadCertificateToGui();
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
@@ -74,33 +75,42 @@ public class MyCodeV3 extends CodeV3 {
 	}
 
 	@Override
-	public boolean saveKey(String keypair_name) {
-		MyX509Cert cert = new MyX509Cert();
-		cert.version = access.getVersion();
-		cert.serial_number = access.getSerialNumber();
-		cert.date_not_before = access.getNotBefore();
-		cert.date_not_after = access.getNotAfter();
-		cert.algorithm = access.getPublicKeyAlgorithm();
-		cert.params[0] = access.getPublicKeyParameter();	
-		cert.params[1] = access.getPublicKeyECCurve();		// will be needed in case of EC algorithm
-		cert.signature_algorithm = access.getPublicKeySignatureAlgorithm();
-		cert.subject = access.getSubject();
-		cert.issuer = cert.subject;
-				
+	public boolean saveKey(String keypair_name) {		
 		try {
+			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+			if (MyKeyStore.ks.containsAlias(keypair_name)) {
+				GuiInterface.reportError("Keystore already contains that alias.");
+		    	return false;
+			}
+			
+			MyX509Cert cert = new MyX509Cert();
+			cert.version = access.getVersion();
+			cert.serial_number = access.getSerialNumber();
+			cert.date_not_before = access.getNotBefore();
+			cert.date_not_after = access.getNotAfter();
+			cert.algorithm = access.getPublicKeyAlgorithm();
+			cert.params[0] = access.getPublicKeyParameter();	
+			cert.params[1] = access.getPublicKeyECCurve();		// will be needed in case of EC algorithm
+			cert.signature_algorithm = access.getPublicKeySignatureAlgorithm();
+			cert.subject = access.getSubject();
+			cert.issuer = cert.subject;
+			cert.generateKeypair();
 			if (cert.version > Constants.V1) {
 				cert.subject_ui = access.getSubjectUniqueIdentifier();
 				cert.issuer_ui = cert.subject_ui;
+				
+				
 				if (cert.version > Constants.V2) {
-					// TODO zbog v2 i v3
+					// TODO save key zbog v2 i v3
 					cert.generateBasicConstraint(access.isCritical(Constants.BC), access.isCA(), access.getPathLen());
+					if (access.getEnabledKeyIdentifiers()) {
+						cert.generateAuthorityKeyIdentifier(access.isCritical(Constants.AKID));
+						cert.generateSubjectKeyIdentifier(access.isCritical(Constants.AKID));					
+					}
 				}
-			}
+			}					
+			cert.generateCertificate(cert.keypair.getPrivate());		
 			
-			cert.generateKeypair();
-			cert.generateCertificate(cert.keypair.getPrivate());
-			
-			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			MyKeyStore.putKey(keypair_name, cert.keypair.getPrivate(), cert.certificate, MyKeyStore.localPassword);
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 		} catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException
@@ -176,10 +186,16 @@ public class MyCodeV3 extends CodeV3 {
 			// TODO zbog CSR-a	signCertificate			
 			if (current_cert.version > Constants.V1) {
 				// ovde nesto mozda za ui
-				if (current_cert.version > Constants.V2)
+				if (current_cert.version > Constants.V2) {
 					//current_cert.loadExtensions(current_csr);
 					current_cert.loadExtensions(current_csr_info);
+					// TODO ako subject ima skid, onda mu dodajemo issuerov skid u njegov akid
+					byte [] keyID =  MyX509Cert.extractSubjectKeyIdentifier(cert_issuer);
+					if (keyID != null)
+						current_cert.extensions[Constants.AKID] = MyX509Cert.generateAuthorityKeyIdentifier(false, keyID, cert_issuer.getSubjectX500Principal().getName(), cert_issuer.getSerialNumber());
+				}
 			}
+			
 			
 			//current_cert.subject = current_csr.getSubject().toString();			
 			//current_cert.subPubKeyInfo = current_csr.getSubjectPublicKeyInfo();
@@ -191,8 +207,7 @@ public class MyCodeV3 extends CodeV3 {
 			current_cert.signature_algorithm = "SHA1with" + cert_issuer.getPublicKey().getAlgorithm();
 			if (current_cert.signature_algorithm.equals("SHA1withEC"))
 				current_cert.signature_algorithm += "DSA";
-			
-			
+						
 			current_cert.generateCertificate(entry_issuer.getPrivateKey());
 				
 			Certificate[] chain = (X509Certificate[]) entry_issuer.getCertificateChain();
@@ -221,20 +236,20 @@ public class MyCodeV3 extends CodeV3 {
 	}
 
 	@Override
-	public void exportCertificate(File file, String format) {
+	public void exportCertificate(File file, int encoding) {
 		// TODO export certificate		
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(file.getAbsolutePath() + ".cer");
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-			switch (format) {
-			case "PEM": 
+			switch (encoding) {
+			case Constants.PEM: 
 				BASE64Encoder encoder = new BASE64Encoder();		    			    
 			    outputStream.write(X509Factory.BEGIN_CERT.getBytes());
 			    encoder.encodeBuffer(current_keyentry.getCertificate().getEncoded(), outputStream);
 			    outputStream.write(X509Factory.END_CERT.getBytes());
 				break;
-			case "DER":
+			case Constants.DER:
 				// Certificate [] chain = current_keyentry.getCertificateChain();
 				outputStream.write(current_keyentry.getCertificate().getEncoded());
 				break;
@@ -327,8 +342,13 @@ public class MyCodeV3 extends CodeV3 {
 			// access.setSubjectUniqueIdentifier(v);
 			// access.setIssuerUniqueIdentifier(v);
 			if (current_cert.version > Constants.V2) {
-				// Basic Constraints
-				access.setCritical(Constants.BC, current_cert.extensions[Constants.BC].isCritical());
+				for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++)
+					if (current_cert.extensions[i] == null)
+						access.setCritical(i, false);
+					else
+						access.setCritical(i, current_cert.extensions[i].isCritical());
+				
+				// Basic Constraints				
 				if (current_cert.constraint == -1) {
 					access.setCA(false);
 					access.setPathLen("");
@@ -340,6 +360,16 @@ public class MyCodeV3 extends CodeV3 {
 						access.setPathLen(String.valueOf(current_cert.constraint));
 						
 				}
+				// Key Identifiers
+				// TODO set isEnabled maybe
+				if (signed && current_cert.extensions[Constants.AKID] != null) {
+					access.setAuthorityKeyID(String.valueOf(new DEROctetString(current_cert.akid.getKeyIdentifier())));
+					access.setAuthorityIssuer((current_cert.akid.getAuthorityCertIssuer().getNames())[0].toString());
+					access.setAuthoritySerialNumber(String.valueOf(current_cert.akid.getAuthorityCertSerialNumber()));
+				}
+				if (current_cert.extensions[Constants.SKID] != null)
+					access.setSubjectKeyID(String.valueOf(new DEROctetString(current_cert.skid.getKeyIdentifier())));
+				// Key Usage
 			}			
 		}
 		return signed;

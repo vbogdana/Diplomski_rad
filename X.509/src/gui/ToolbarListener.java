@@ -60,7 +60,6 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 					// enable
 					mainFrame.enablePanel(false);
 					mainFrame.toolbar_panel.keystore_panel.enablePanel(true);
-					// TODO
 					mainFrame.enableExportCertificateButton(signed > 0);
 					mainFrame.enableSignButton(true);
 				} else {
@@ -207,7 +206,6 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	}
 	
 	private void exportCertificatePerformed() {
-		// TODO export certificate
 		//String format;
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -218,7 +216,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 		 
 		if (userSelection == JFileChooser.APPROVE_OPTION) {
 		    File fileToSave = fileChooser.getSelectedFile();
-		    code.exportCertificate(fileToSave, "DER");
+		    code.exportCertificate(fileToSave, mainFrame.toolbar_panel.manage_panel.encoding);
 		    
 		}
 		

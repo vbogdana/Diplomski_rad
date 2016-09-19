@@ -1,6 +1,8 @@
 package gui;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -36,6 +38,20 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 		isCA.setBounds(300, 10, 150, 25);
 		isCA.setSelected(false);
 		isCA.setEnabled(false);
+		isCA.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (isCA.isSelected()) {
+					mainFrame.extensions_panel.setCritical(Constants.AKID, false);
+					mainFrame.extensions_panel.key_identifiers_panel.setIsEnabled(true);
+					mainFrame.extensions_panel.key_identifiers_panel.isCritical.setEnabled(false);
+					mainFrame.extensions_panel.key_identifiers_panel.isEnabled.setEnabled(false);
+				} else {
+					mainFrame.extensions_panel.key_identifiers_panel.resetPanel();
+					mainFrame.extensions_panel.key_identifiers_panel.enablePanel(true);
+				}				
+			}			
+		});
 		panel.add(isCA);
 		
 	}
@@ -48,7 +64,6 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 	}
 	
 	void enablePanel(boolean flag) {
-		// TODO
 		enableExtensionPanel(flag);
 		
 		if (mainFrame.version_panel.getVersion() < Constants.V2) {

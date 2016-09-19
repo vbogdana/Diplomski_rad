@@ -13,7 +13,7 @@ public interface CodeInterface {
 	public abstract boolean exportKeypair(String keypair_name, String file, String password);
 	public abstract boolean signCertificate(String issuer);
 	public abstract void importCertificate();
-	public abstract void exportCertificate(File file, String format);
+	public abstract void exportCertificate(File file, int encoding);
 	public abstract String getIssuer(String keypair_name);
 	public abstract List<String> getIssuers();
 	public abstract boolean generateCSR(String keypair_name);
