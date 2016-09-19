@@ -122,11 +122,17 @@ public class SubjectPanel extends InfoPanel {
 	}
 	
 	void setValue(int i, String s) {
+		if (i == Constants.SA) {
+			switch (s) {
+			case "1.3.36.3.3.1.3": s = "RIPEMD128withRSA"; break;
+			case "1.3.36.3.3.1.2": s = "RIPEMD160withRSA"; break;
+			case "1.3.36.3.3.1.4": s = "RIPEMD256withRSA"; break;
+			}
+		}
 		values[i].setText(s);
 	}
 	
 	String getInfo() {
-		// TODO
 		String info = "";
 
 		if (!values[Constants.CN].getText().isEmpty()) 		info += "CN=" + values[Constants.CN].getText();

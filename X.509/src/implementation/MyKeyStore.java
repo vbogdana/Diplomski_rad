@@ -70,13 +70,6 @@ public class MyKeyStore {
 	}
 	
 	public static void putKey(String keypair_name, PrivateKey key, Certificate cert, String password) throws KeyStoreException {
-		/*
-		SecureRandom random = new SecureRandom();
-		byte[] ivBytes = new byte[16];
-		random.nextBytes(ivBytes);
-		IvParameterSpec iv = new IvParameterSpec(ivBytes);
-		KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray(), "AES", iv);
-		*/
 		KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
 		
 		Certificate[] chain = new Certificate[1];
@@ -88,7 +81,6 @@ public class MyKeyStore {
 	
 	public static PrivateKeyEntry getKey(String keypair_name, String password) throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException{
 		KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
-		//KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray(), "AES", null);
 		
 		if (ks.isKeyEntry(keypair_name))
 			return (PrivateKeyEntry) ks.getEntry(keypair_name, protParam);
@@ -96,20 +88,13 @@ public class MyKeyStore {
 		return null;
 	}
 	
-	public static void putCert(String keypair_name, Certificate cert, String password) throws KeyStoreException{
-		KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
-		//KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray(), "AES", null);
-		
-		KeyStore.TrustedCertificateEntry entry = new KeyStore.TrustedCertificateEntry(cert);
-		ks.setEntry(keypair_name, entry, protParam);
+	public static void putCert(String keypair_name, Certificate cert) throws KeyStoreException{
+		ks.setCertificateEntry(keypair_name, cert);
 	}
 	
-	public static TrustedCertificateEntry getCert(String keypair_name, String password) throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException{
-		KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
-		//KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray(), "AES", null);
-		
+	public static TrustedCertificateEntry getCert(String keypair_name) throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException {
 		if (ks.isCertificateEntry(keypair_name))
-			return (TrustedCertificateEntry) ks.getEntry(keypair_name, protParam);
+			return (TrustedCertificateEntry) ks.getEntry(keypair_name, null);
 		
 		return null;
 	}

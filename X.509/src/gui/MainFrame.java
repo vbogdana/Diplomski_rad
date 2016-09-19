@@ -118,6 +118,12 @@ public class MainFrame extends JFrame {
 	String getPathLen() { return ((supported_version >= Constants.V3) ? extensions_panel.basic_constraints_panel.getPathLen() : ""); }
 	boolean isCA() { return ((supported_version >= Constants.V3) ? extensions_panel.basic_constraints_panel.isCertificateAuthority() : false); }
 	boolean getEnabledKID() { return extensions_panel.key_identifiers_panel.getIsEnabled(); }
+	boolean [] getKeyUsage() {
+		boolean [] key_usage = new boolean [Constants.NUM_OF_KU];
+		for (int i = 0; i < Constants.NUM_OF_KU; i++)
+			key_usage[i] = extensions_panel.key_usage_panel.getKeyUsage(i);
+		return key_usage;
+	}
 	
 	// ********************************************************************************************************
 	// 												SETTERS
@@ -158,4 +164,8 @@ public class MainFrame extends JFrame {
 	void setAuthorityIssuer(String authorityIssuer) { extensions_panel.key_identifiers_panel.setAuthorityIssuer(authorityIssuer); }
 	void setAuthoritySerialNumber(String authoritySerialNumber) { extensions_panel.key_identifiers_panel.setAuthoritySerialNumber(authoritySerialNumber); }
 	void setSubjectKeyID(String subjectKeyID) { extensions_panel.key_identifiers_panel.setSubjectKeyID(subjectKeyID); }
+	void setKeyUsage(boolean [] key_usage) {
+		for (int i = 0; i < Constants.NUM_OF_KU; i++)
+			extensions_panel.key_usage_panel.setKeyUsage(i, key_usage[i]);
+	}
 }

@@ -38,6 +38,7 @@ import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
@@ -155,8 +156,19 @@ public class MyX509Cert {
 		}
 	}
 	
+	public static boolean canBeAnIssuer(X509Certificate certificate) throws IOException {
+		int constraint = certificate.getBasicConstraints();
+		boolean critical = isCritical(certificate, asn1[Constants.BC].getId());
+		boolean keyCertSign = false, key_usage[];
+		if ((key_usage = certificate.getKeyUsage()) != null)
+			keyCertSign = key_usage[Constants.KEY_CERT_SIGN];
+		if (constraint != -1 && critical && keyCertSign)
+			return true;
+		else
+			return false;
+	}
+	
 	public static byte[] extractSubjectKeyIdentifier(X509Certificate certificate) throws IOException {
-		//boolean critical = isCritical(certificate, asn1[Constants.SKID].getId());
 		byte[] extvalue = getCoreExtValue(certificate, asn1[Constants.SKID]);
 		if (extvalue != null) {
 			SubjectKeyIdentifier skid = SubjectKeyIdentifier.getInstance(extvalue);
@@ -199,21 +211,10 @@ public class MyX509Cert {
 				getBasicConstraint();
 				getAuthorityKeyIdentifier();
 				getSubjectKeyIdentifier();
+				getKeyUsage();
 			}
 		}
 		/*	
-		boolean [] key_usage_arr=cert.getKeyUsage();
-		if (key_usage_arr!=null){
-			key_usage_0.setSelected(key_usage_arr[0]);
-			key_usage_1.setSelected(key_usage_arr[1]);
-			key_usage_2.setSelected(key_usage_arr[2]);
-			key_usage_3.setSelected(key_usage_arr[3]);
-			key_usage_4.setSelected(key_usage_arr[4]);
-			key_usage_5.setSelected(key_usage_arr[5]);
-			key_usage_6.setSelected(key_usage_arr[6]);
-			key_usage_7.setSelected(key_usage_arr[7]);
-			key_usage_8.setSelected(key_usage_arr[8]);
-		}
 		
 		try {
 			String altern="";
@@ -314,7 +315,7 @@ public class MyX509Cert {
 			holder = certv1.build(sigGen);
 		} else {
 			certv3 = new X509v3CertificateBuilder(name_issuer, new BigInteger(serial_number), date_not_before, date_not_after, name_subject, subPubKeyInfo);
-			// TODO zbog uia generate csr
+			// TODO zbog uia generate cert
 			// if (subject_ui != null)				cert.setSubjectUniqueID(boolean[] uid);
 			// if (issuer_ui != null)				cert.setIssuerUniqueID(boolean[] uid);
 			if (version > V2) {
@@ -329,7 +330,7 @@ public class MyX509Cert {
 	
 	public PKCS10CertificationRequest generateCSR(PrivateKey privateKey) throws OperatorCreationException {
 		X500Principal subject = certificate.getSubjectX500Principal();	
-		// TODO zbog uia generate csr info
+		// TODO zbog uia generate csr 
 		ContentSigner signGen = new JcaContentSignerBuilder(certificate.getSigAlgName()).setProvider(new BouncyCastleProvider()).build(privateKey);
 		PKCS10CertificationRequestBuilder builder = new JcaPKCS10CertificationRequestBuilder(subject, certificate.getPublicKey());		
 		if (version > V1) {
@@ -341,7 +342,6 @@ public class MyX509Cert {
 				for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++)
 					if (extensions[i] != null) 			extensionsGenerator.addExtension(extensions[i]);
 				builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensionsGenerator.generate());
-				// Attribute attribute = new Attribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, new DERSet( extensionsGenerator.generate()));
 			}
 		}	
 		
@@ -350,7 +350,7 @@ public class MyX509Cert {
 	}
 	
 	public CertificationRequestInfo generateCSRInfo() {
-		//  zbog uia
+		//  TODO zbog uia generate csr info
 		X500Name subject = new X500Name(certificate.getSubjectX500Principal().getName());
 		subPubKeyInfo = SubjectPublicKeyInfo.getInstance(certificate.getPublicKey().getEncoded());
 		CertificationRequestInfo info = null;
@@ -384,8 +384,6 @@ public class MyX509Cert {
 	}
 
 	 public void generateBasicConstraint(boolean critical, boolean isCA, String pathLen) throws IOException{
-		// pathLen imaju samo oni sertifikati sa CA true i keyCertSign true
-		// TODO basic constraint
 		if (isCA) {
 			if (pathLen == null || pathLen.isEmpty())
 				extensions[Constants.BC] = new Extension(asn1[Constants.BC], critical, new DEROctetString(new BasicConstraints(isCA)));
@@ -440,8 +438,54 @@ public class MyX509Cert {
 		if (extvalue != null) {
 			skid = SubjectKeyIdentifier.getInstance(extvalue);
 			extensions[Constants.SKID] = new Extension(asn1[Constants.SKID], critical, new DEROctetString(skid));
-		}
+		}	
+	}
+	
+	public int generateUsage(boolean [] key_usage) {
+		int usage = 0;
 		
+		if (key_usage[0])
+			usage |= KeyUsage.digitalSignature;
+		if (key_usage[1])
+			usage |= KeyUsage.nonRepudiation;
+		if (key_usage[2])
+			usage |= KeyUsage.keyEncipherment;
+		if (key_usage[3])
+			usage |= KeyUsage.dataEncipherment;
+		if (key_usage[4])
+			usage |= KeyUsage.keyAgreement;
+		if (key_usage[5])
+			usage |= KeyUsage.keyCertSign;
+		if (key_usage[6])
+			usage |= KeyUsage.cRLSign;
+		if (key_usage[7])
+			usage |= KeyUsage.encipherOnly;
+		if (key_usage[8])
+			usage |= KeyUsage.decipherOnly;
+		
+		return usage;
+	}
+	
+	public void generateKeyUsage(boolean critical, boolean [] key_usage) throws IOException{
+		int usage = generateUsage(key_usage);
+		
+		if (usage != 0) {
+			extensions[Constants.KU] = new Extension(Extension.keyUsage, critical, new DEROctetString(new KeyUsage(usage)));
+		}
+	}
+	
+	public void getKeyUsage() throws IOException{
+		boolean [] key_usage = certificate.getKeyUsage();
+		if (key_usage == null)
+			return;
+		
+		int usage = generateUsage(key_usage);
+		
+		if (usage == 0)
+			return;
+
+		boolean critical= isCritical(certificate, asn1[Constants.KU].getId());		
+		extensions[Constants.KU] = new Extension(Extension.keyUsage, critical, new DEROctetString(new KeyUsage(usage)));
 	}
 
 }

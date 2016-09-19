@@ -5,10 +5,13 @@ import gui.GuiInterface;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStore.Entry;
 import java.security.KeyStore.PrivateKeyEntry;
+import java.security.KeyStore.TrustedCertificateEntry;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -16,6 +19,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -33,7 +37,7 @@ import x509.v3.CodeV3;
 public class MyCodeV3 extends CodeV3 {
 	private String current_alias;
 	private MyX509Cert current_cert;
-	private PrivateKeyEntry current_keyentry;
+	private Entry current_keyentry;
 	// TODO current_csr
 	// private PKCS10CertificationRequest current_csr;	
 	private CertificationRequestInfo current_csr_info;
@@ -60,8 +64,13 @@ public class MyCodeV3 extends CodeV3 {
 		boolean signed = false;
 		try {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
-			PrivateKeyEntry entry = MyKeyStore.getKey(keypair_name, MyKeyStore.localPassword);
-			X509Certificate cert = (X509Certificate) entry.getCertificate();		
+			X509Certificate cert;
+			Entry entry = MyKeyStore.getKey(keypair_name, MyKeyStore.localPassword);
+			if (entry == null) {
+				entry = MyKeyStore.getCert(keypair_name);
+				cert = (X509Certificate) ((TrustedCertificateEntry) entry).getTrustedCertificate();
+			} else
+				cert = (X509Certificate) ((PrivateKeyEntry) entry).getCertificate();		
 			current_cert  = new MyX509Cert(cert);
 			current_keyentry = entry;
 			current_alias = keypair_name;
@@ -70,7 +79,8 @@ public class MyCodeV3 extends CodeV3 {
 			GuiInterface.reportError(e);
 			return -1;
 		}
-		
+		if (current_keyentry instanceof TrustedCertificateEntry)
+			return 2;
 		return (signed ? 1 : 0);
 	}
 
@@ -102,11 +112,15 @@ public class MyCodeV3 extends CodeV3 {
 				
 				if (cert.version > Constants.V2) {
 					// TODO save key zbog v2 i v3
+					// Basic Constraints
 					cert.generateBasicConstraint(access.isCritical(Constants.BC), access.isCA(), access.getPathLen());
+					// Authority and subject key identifiers
 					if (access.getEnabledKeyIdentifiers()) {
 						cert.generateAuthorityKeyIdentifier(access.isCritical(Constants.AKID));
-						cert.generateSubjectKeyIdentifier(access.isCritical(Constants.AKID));					
-					}
+						cert.generateSubjectKeyIdentifier(access.isCritical(Constants.AKID));
+					}				
+					// Key usage
+					cert.generateKeyUsage(access.isCritical(Constants.KU), access.getKeyUsage());
 				}
 			}					
 			cert.generateCertificate(cert.keypair.getPrivate());		
@@ -166,9 +180,13 @@ public class MyCodeV3 extends CodeV3 {
 
 	@Override
 	public boolean exportKeypair(String keypair_name, String file, String password) {
-		try {		
+		try {	
+			if (current_keyentry instanceof TrustedCertificateEntry) {
+				GuiInterface.reportError("Can not export a trusted certificate as a keypair.");
+				return false;
+			}				
 			MyKeyStore.load(file + ".p12", null);
-			MyKeyStore.putChain(keypair_name, current_keyentry.getPrivateKey(), current_keyentry.getCertificateChain(), password);
+			MyKeyStore.putChain(keypair_name, ((PrivateKeyEntry) current_keyentry).getPrivateKey(), ((PrivateKeyEntry) current_keyentry).getCertificateChain(), password);
 			MyKeyStore.store(file + ".p12", password);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
 			GuiInterface.reportError(e);
@@ -178,35 +196,29 @@ public class MyCodeV3 extends CodeV3 {
 	}
 
 	@Override
-	public boolean signCertificate(String issuer) {
+	public boolean signCertificate(String issuer, String algorithm) {
 		try {		
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			PrivateKeyEntry entry_issuer = MyKeyStore.getKey(issuer, MyKeyStore.localPassword);
 			X509Certificate cert_issuer = (X509Certificate) entry_issuer.getCertificate();
-			// TODO zbog CSR-a	signCertificate			
+			// TODO zbog CSR-a i UI-a signCertificate			
 			if (current_cert.version > Constants.V1) {
 				// ovde nesto mozda za ui
 				if (current_cert.version > Constants.V2) {
 					//current_cert.loadExtensions(current_csr);
 					current_cert.loadExtensions(current_csr_info);
-					// TODO ako subject ima skid, onda mu dodajemo issuerov skid u njegov akid
 					byte [] keyID =  MyX509Cert.extractSubjectKeyIdentifier(cert_issuer);
 					if (keyID != null)
 						current_cert.extensions[Constants.AKID] = MyX509Cert.generateAuthorityKeyIdentifier(false, keyID, cert_issuer.getSubjectX500Principal().getName(), cert_issuer.getSerialNumber());
 				}
 			}
-			
-			
+					
 			//current_cert.subject = current_csr.getSubject().toString();			
 			//current_cert.subPubKeyInfo = current_csr.getSubjectPublicKeyInfo();
 			current_cert.subject = current_csr_info.getSubject().toString();			
 			current_cert.subPubKeyInfo = current_csr_info.getSubjectPublicKeyInfo();
 			current_cert.issuer = cert_issuer.getSubjectX500Principal().getName();
-			// TODO ne nameci SHA1
-			//current_cert.signature_algorithm = cert_issuer.getSigAlgName();
-			current_cert.signature_algorithm = "SHA1with" + cert_issuer.getPublicKey().getAlgorithm();
-			if (current_cert.signature_algorithm.equals("SHA1withEC"))
-				current_cert.signature_algorithm += "DSA";
+			current_cert.signature_algorithm = algorithm;
 						
 			current_cert.generateCertificate(entry_issuer.getPrivateKey());
 				
@@ -218,7 +230,7 @@ public class MyCodeV3 extends CodeV3 {
 			
 			chain = list_array.toArray(new X509Certificate[list_array.size()]);	
 			
-			MyKeyStore.putChain(current_alias, current_keyentry.getPrivateKey(), chain, MyKeyStore.localPassword);
+			MyKeyStore.putChain(current_alias, ((PrivateKeyEntry) current_keyentry).getPrivateKey(), chain, MyKeyStore.localPassword);
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException 
 				| UnrecoverableEntryException | OperatorCreationException | IOException e) {
@@ -230,14 +242,30 @@ public class MyCodeV3 extends CodeV3 {
 	}
 
 	@Override
-	public void importCertificate() {
-		// TODO import certificate
-
+	public boolean importCertificate(File file, String keypair_name) {
+		CertificateFactory fact;
+		try {
+			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+			if (MyKeyStore.ks.containsAlias(keypair_name)) {
+				GuiInterface.reportError("Keystore already contains that alias.");
+		    	return false;
+			}
+			
+			fact = CertificateFactory.getInstance("X.509");
+			FileInputStream is = new FileInputStream (file.getAbsolutePath());
+		    X509Certificate cert = (X509Certificate) fact.generateCertificate(is);
+		    
+		    MyKeyStore.putCert(keypair_name, cert);
+			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+		} catch (CertificateException | KeyStoreException | NoSuchAlgorithmException | IOException e) {
+			GuiInterface.reportError(e);
+			return false;
+		}
+		return true;
 	}
 
 	@Override
-	public void exportCertificate(File file, int encoding) {
-		// TODO export certificate		
+	public void exportCertificate(File file, int encoding) {	
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(file.getAbsolutePath() + ".cer");
@@ -246,12 +274,11 @@ public class MyCodeV3 extends CodeV3 {
 			case Constants.PEM: 
 				BASE64Encoder encoder = new BASE64Encoder();		    			    
 			    outputStream.write(X509Factory.BEGIN_CERT.getBytes());
-			    encoder.encodeBuffer(current_keyentry.getCertificate().getEncoded(), outputStream);
+			    encoder.encodeBuffer(current_cert.certificate.getEncoded(), outputStream);
 			    outputStream.write(X509Factory.END_CERT.getBytes());
 				break;
 			case Constants.DER:
-				// Certificate [] chain = current_keyentry.getCertificateChain();
-				outputStream.write(current_keyentry.getCertificate().getEncoded());
+				outputStream.write(current_cert.certificate.getEncoded());
 				break;
 			}		
 			byte c[] = outputStream.toByteArray();			    
@@ -260,9 +287,6 @@ public class MyCodeV3 extends CodeV3 {
 		} catch (IOException | CertificateEncodingException e) {
 			GuiInterface.reportError(e);
 		}   
-		
-		
-
 	}
 		
 
@@ -282,21 +306,41 @@ public class MyCodeV3 extends CodeV3 {
 		return "";
 	}
 	
+	public String getIssuerPublicKeyAlgorithm(String keypair_name) {
+		try {
+			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+			PrivateKeyEntry cert_issuer_key = MyKeyStore.getKey(keypair_name, MyKeyStore.localPassword);
+			X509Certificate cert_issuer = (X509Certificate) cert_issuer_key.getCertificate();
+			
+			String algorithm = cert_issuer.getPublicKey().getAlgorithm();
+			return algorithm;
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
+			GuiInterface.reportError(e);
+		}
+		return "";
+	}
+	
 	@Override
-	public List<String> getIssuers() {
-		// TODO get possible issuers
+	public List<String> getIssuers(String keypair_name) {
 		List<String> valid = new ArrayList<String> ();
 		try {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			Enumeration<String> certs = MyKeyStore.ks.aliases();
 			
 			while (certs.hasMoreElements()){
-				String alias = certs.nextElement();			
-				PrivateKeyEntry local_entry = MyKeyStore.getKey(alias, MyKeyStore.localPassword);
-				Certificate [] cert_chain = local_entry.getCertificateChain();
-				boolean isValid = MyX509Cert.verify((X509Certificate[]) cert_chain);
-				if (isValid)
-					valid.add(alias);
+				String alias = certs.nextElement();
+				if (alias.equals(keypair_name))
+					continue;
+				Entry local_entry = MyKeyStore.getCert(alias);
+				if (local_entry != null)
+					continue;
+				local_entry = MyKeyStore.getKey(alias, MyKeyStore.localPassword);
+				if (MyX509Cert.canBeAnIssuer((X509Certificate) ((PrivateKeyEntry) local_entry).getCertificate())) {
+					Certificate [] cert_chain = ((PrivateKeyEntry) local_entry).getCertificateChain();
+					boolean isValid = MyX509Cert.verify((X509Certificate[]) cert_chain);
+					if (isValid)
+						valid.add(alias);
+				}
 			}			
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
 			GuiInterface.reportError(e);
@@ -329,8 +373,10 @@ public class MyCodeV3 extends CodeV3 {
 		access.setSubject(current_cert.subject);
 		access.setSubjectSignatureAlgorithm(current_cert.signature_algorithm);
 		
-		// ako je potpisan moras neki info da vratis i tada ucistavas issuera
-		signed = MyX509Cert.verify((X509Certificate[]) current_keyentry.getCertificateChain());
+		if (current_keyentry instanceof PrivateKeyEntry)
+			signed = MyX509Cert.verify((X509Certificate[]) ((PrivateKeyEntry) current_keyentry).getCertificateChain());
+		else
+			signed = true;
 		if (signed) {
 			access.setIssuer(current_cert.issuer);
 			access.setIssuerSignatureAlgorithm(current_cert.signature_algorithm);
@@ -340,7 +386,6 @@ public class MyCodeV3 extends CodeV3 {
 		
 		if (current_cert.version > Constants.V1) {
 			// access.setSubjectUniqueIdentifier(v);
-			// access.setIssuerUniqueIdentifier(v);
 			if (current_cert.version > Constants.V2) {
 				for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++)
 					if (current_cert.extensions[i] == null)
@@ -361,15 +406,19 @@ public class MyCodeV3 extends CodeV3 {
 						
 				}
 				// Key Identifiers
-				// TODO set isEnabled maybe
 				if (signed && current_cert.extensions[Constants.AKID] != null) {
 					access.setAuthorityKeyID(String.valueOf(new DEROctetString(current_cert.akid.getKeyIdentifier())));
-					access.setAuthorityIssuer((current_cert.akid.getAuthorityCertIssuer().getNames())[0].toString());
+					if (current_cert.akid.getAuthorityCertIssuer() != null )
+						access.setAuthorityIssuer((current_cert.akid.getAuthorityCertIssuer().getNames())[0].toString());
+					if (current_cert.akid.getAuthorityCertSerialNumber() != null)
 					access.setAuthoritySerialNumber(String.valueOf(current_cert.akid.getAuthorityCertSerialNumber()));
 				}
-				if (current_cert.extensions[Constants.SKID] != null)
+				if (current_cert.extensions[Constants.SKID] != null && current_cert.skid.getKeyIdentifier() != null)
 					access.setSubjectKeyID(String.valueOf(new DEROctetString(current_cert.skid.getKeyIdentifier())));
 				// Key Usage
+				if (current_cert.extensions[Constants.KU] != null && current_cert.certificate.getKeyUsage() != null) {
+					access.setKeyUsage(current_cert.certificate.getKeyUsage());
+				}
 			}			
 		}
 		return signed;

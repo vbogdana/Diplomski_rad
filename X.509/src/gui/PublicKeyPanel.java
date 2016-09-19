@@ -38,32 +38,32 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	private JRadioButton alg_buttons[] = new JRadioButton [NUM_OF_ALGORITHMS];
 		
 	// ALGORITHM PARAMETERS
+	// TODO
 	private final String texts[] = { "Key length:", "Key length:", "Type:", "Set:", "Curve:" };	
 	private String dsa_lengths[] = new String [NUM_OF_DSA_LENGTHS];
 	private String rsa_lengths[] = { "512", "1024", "2048", "4096" };
 	private String gost_types[] = { "GostR3410-2001-CryptoPro-A", "GostR3410-2001-CryptoPro-B", "GostR3410-2001-CryptoPro-C", "GostR3410-2001-CryptoPro-XchA", "GostR3410-2001-CryptoPro-XchB" };
 	private String ec_sets[] = { "X9.62", "SEC", "NIST" };
-	private String curves_by_set[][] = { 
-								  { "prime192v1", "prime192v2", "prime192v3", "prime239v1", "prime239v2", "prime239v3", "prime256v1" }, 
-								  { "secp192k1", "secp192r1", "secp224k1", "secp224r1", "secp256k1", "secp256r1", "secp384r1", "secp521r1" }, 
-								  { "P-224", "P-256", "P-384", "P-521" } 
-								};
+	static String curves_by_set[][] = { 
+								  		{ "prime192v1", "prime192v2", "prime192v3", "prime239v1", "prime239v2", "prime239v3", "prime256v1" }, 
+								  		{ "secp192k1", "secp192r1", "secp224k1", "secp224r1", "secp256k1", "secp256r1", "secp384r1", "secp521r1" }, 
+								  		{ "P-224", "P-256", "P-384", "P-521" } 
+									  };
 	private String parameter_values[][] = { dsa_lengths, rsa_lengths, gost_types, ec_sets };
 	private JLabel labels[] = new JLabel [NUM_OF_ALGORITHMS + 1];
 	private DefaultComboBoxModel<String> model[] = new DefaultComboBoxModel [NUM_OF_SETS];
 	private JComboBox parameters[] = new JComboBox [NUM_OF_ALGORITHMS + 1];
 
 	// HASH ALGORITHMS
-	private String hashes[][] = { 
-							{ "SHA1withDSA" }, 
-							{ "MD2withRSA", "MD5withRSA", "SHA1withRSA", "SHA224withRSA", "SHA256withRSA", "SHA384withRSA", "SHA512withRSA", "RIPEMD128withRSA", "RIPEMD160withRSA", "RIPEMD256withRSA" },
-							{ "GOST3411withECGOST3410" },
-							{ "SHA1withECDSA", "SHA224withECDSA", "SHA256withECDSA", "SHA384withECDSA", "SHA512withECDSA" }
-						};
+	static String hashes[][] = { 
+								{ "SHA1withDSA" }, 
+								{ "MD2withRSA", "MD5withRSA", "SHA1withRSA", "SHA224withRSA", "SHA256withRSA", "SHA384withRSA", "SHA512withRSA", "RIPEMD128withRSA", "RIPEMD160withRSA", "RIPEMD256withRSA" },
+								{ "GOST3411withECGOST3410" },
+								{ "SHA1withECDSA", "SHA224withECDSA", "SHA256withECDSA", "SHA384withECDSA", "SHA512withECDSA" }
+								};
 	private JComboBox hash_algorithms[] = new JComboBox [NUM_OF_ALGORITHMS];
 	
 	PublicKeyPanel(MainFrame parent, boolean enabled[]) {
-		// TODO
 		this.parent = parent;
 		this.enabled = enabled;
 		setBounds(720, 210, 560, 200);
@@ -256,7 +256,6 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	}
 	
 	void setAlgorithm(String s) {
-		// TODO
 		switch (s) {
 			case "DSA": algorithm = DSA; break;
 			case "RSA": algorithm = RSA; break;
@@ -277,7 +276,6 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	}
 	
 	void setAlgorithmParameter(int i, String v) {
-		// TODO Auto-generated method stub
 		if (i == 0) {
 			for (int j = 0; j < parameters[algorithm].getItemCount(); j++)
 				if (((String) parameters[algorithm].getItemAt(j)).equals(v)) {
@@ -298,7 +296,6 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	}
 
 	void setSignatureAlgorithm(String v) {
-		// TODO Auto-generated method stub
 		for (int j = 0; j < hash_algorithms[algorithm].getItemCount(); j++)
 			if (((String) hash_algorithms[algorithm].getItemAt(j)).equals(v)) {
 				hash_algorithms[algorithm].setSelectedIndex(j);

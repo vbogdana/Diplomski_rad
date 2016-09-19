@@ -61,7 +61,10 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 					mainFrame.enablePanel(false);
 					mainFrame.toolbar_panel.keystore_panel.enablePanel(true);
 					mainFrame.enableExportCertificateButton(signed > 0);
-					mainFrame.enableSignButton(true);
+					if (signed == 2)
+						mainFrame.enableSignButton(false);
+					else
+						mainFrame.enableSignButton(true);
 				} else {
 					// reset
 					mainFrame.toolbar_panel.resetPanel();
@@ -179,7 +182,6 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	}
 	
 	private void importCertificatePerformed() {
-		// TODO import certificate
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
 		fileChooser.setFileFilter(new FileNameExtensionFilter("Certificate", "cer"));
@@ -188,19 +190,23 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 		int userSelection = fileChooser.showOpenDialog(null);
 		 
 		if (userSelection == JFileChooser.APPROVE_OPTION) {
-		    // File file = fileChooser.getSelectedFile();	
-		    /*
+		    File file = fileChooser.getSelectedFile();	
 		    try {
-		    	
-			    if (code.importCertificate()) {
-			    	mainFrame.addKeypair(keypair_name);
+		    	String name = JOptionPane.showInputDialog(mainFrame, "Name:", null);
+			    if (name == null)
+			    	return;
+			    
+			    if (name.equals(""))
+			    	throw new DataException("Invalid keypair name.");
+			    
+			    if (code.importCertificate(file, name)) {
+			    	mainFrame.addKeypair(name);
 			    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully imported!");
 			    }
 			    			    
 		    } catch (DataException e) {
 		    	GuiInterface.reportError(e);
 		    }
-		    */
 		}
 				
 	}

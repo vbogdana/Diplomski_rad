@@ -19,6 +19,7 @@ public class ExtensionsPanel extends JPanel {
 	ExtensionPanel [] extension_panels = new ExtensionPanel [Constants.NUM_OF_EXTENSIONS];
 	BasicConstraintsPanel basic_constraints_panel;
 	KeyIdentifiersPanel key_identifiers_panel;
+	KeyUsagePanel key_usage_panel;
 	
 	boolean [] isCritical = new boolean [Constants.NUM_OF_EXTENSIONS];
 	
@@ -35,8 +36,8 @@ public class ExtensionsPanel extends JPanel {
         // TODO
         extension_panels[Constants.BC] = (basic_constraints_panel = new BasicConstraintsPanel(parent));
         extension_panels[Constants.AKID] = (key_identifiers_panel = new KeyIdentifiersPanel(parent));
+        extension_panels[Constants.KU] = (key_usage_panel = new KeyUsagePanel(parent));
         /*
-        generateKeyUsagePanel();
         generateCertificatePoliciesPanel();
         generatePolicyMappingsPanel();
         generateSubjectAlternativeNamePanel();

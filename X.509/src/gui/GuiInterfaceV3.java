@@ -17,6 +17,7 @@ public abstract class GuiInterfaceV3 extends GuiInterfaceV2 {
 	public String getPathLen() { return window.getPathLen(); }
 	public boolean isCA() { return window.isCA(); }
 	public boolean getEnabledKeyIdentifiers() { return window.getEnabledKID(); }
+	public boolean [] getKeyUsage() { return window.getKeyUsage(); }
 	
 	
 	// ********************************************************************************************************
@@ -30,5 +31,6 @@ public abstract class GuiInterfaceV3 extends GuiInterfaceV2 {
 	public void setAuthorityIssuer(String authorityIssuer) { window.setAuthorityIssuer(authorityIssuer); }
 	public void setAuthoritySerialNumber(String authoritySerialNumber) { window.setAuthoritySerialNumber(authoritySerialNumber); }
 	public void setSubjectKeyID(String subjectKeyID) { window.setSubjectKeyID(subjectKeyID); }
+	public void setKeyUsage( boolean [] key_usage) { window.setKeyUsage(key_usage); }
 
 }

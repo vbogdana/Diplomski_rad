@@ -13,9 +13,9 @@ import code.DataException;
 @SuppressWarnings("serial")
 public class BasicConstraintsPanel extends ExtensionPanel {
 	
-	private JCheckBox isCA;
-	private JTextField pathLen;
-	private JLabel label;
+	JCheckBox isCA;
+	JTextField pathLen;
+	JLabel label;
 
 
 	BasicConstraintsPanel(MainFrame mainFrame) {
@@ -42,13 +42,30 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (isCA.isSelected()) {
+					// Path length
+					pathLen.setEnabled(true);
+					// Key IDs
 					mainFrame.extensions_panel.setCritical(Constants.AKID, false);
 					mainFrame.extensions_panel.key_identifiers_panel.setIsEnabled(true);
 					mainFrame.extensions_panel.key_identifiers_panel.isCritical.setEnabled(false);
 					mainFrame.extensions_panel.key_identifiers_panel.isEnabled.setEnabled(false);
+					// Key usage
+					mainFrame.extensions_panel.setCritical(Constants.KU, true);
+					mainFrame.extensions_panel.key_usage_panel.setKeyUsage(Constants.KEY_CERT_SIGN, true);
+					mainFrame.extensions_panel.key_usage_panel.isCritical.setEnabled(false);
+					mainFrame.extensions_panel.key_usage_panel.key_usage[Constants.KEY_CERT_SIGN].setEnabled(false);
 				} else {
+					// Path length
+					pathLen.setText("");
+					pathLen.setEnabled(false);
+					// Key IDs
 					mainFrame.extensions_panel.key_identifiers_panel.resetPanel();
 					mainFrame.extensions_panel.key_identifiers_panel.enablePanel(true);
+					// Key usage
+					mainFrame.extensions_panel.setCritical(Constants.KU, false);
+					mainFrame.extensions_panel.key_usage_panel.setKeyUsage(Constants.KEY_CERT_SIGN, false);
+					mainFrame.extensions_panel.key_usage_panel.isCritical.setEnabled(true);
+					mainFrame.extensions_panel.key_usage_panel.key_usage[Constants.KEY_CERT_SIGN].setEnabled(true);
 				}				
 			}			
 		});
@@ -74,7 +91,10 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 		} else {
 			isCA.setEnabled(flag);
 			label.setEnabled(true);
-			pathLen.setEnabled(flag);
+			if (isCA.isSelected() && flag)
+				pathLen.setEnabled(flag);
+			else
+				pathLen.setEnabled(false);
 			pathLen.setDisabledTextColor(Color.BLACK);
 		}
 	}

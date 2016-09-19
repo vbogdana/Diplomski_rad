@@ -7,6 +7,7 @@ public class Constants {
 	public static final int DSA = 0, RSA = 1, GOST = 2, EC = 3, NUM_OF_ALGORITHMS = 4;
 	public static final int DER = 0, PEM = 1, NUM_OF_ENCODINGS = 2;
 	
-	public static final int NUM_OF_EXTENSIONS = 15;
-	public static final int BC = 0, AKID = 1, SKID = 2;
+	public static final int NUM_OF_EXTENSIONS = 15, NUM_OF_KU = 9;
+	public static final int KEY_CERT_SIGN = 5;
+	public static final int BC = 0, AKID = 1, SKID = 2, KU = 3;
 }

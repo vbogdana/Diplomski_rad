@@ -5,7 +5,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.List;
+
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -13,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+
 import code.CodeInterface;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
@@ -24,7 +27,8 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 	IssuerPanel issuer_panel;
 	JPanel info_panel, authorities_panel;
 	JLabel version, serial_number, not_before, not_after;
-	JComboBox<String> authorities;
+	JComboBox<String> authorities,digest_algorithms;
+	DefaultComboBoxModel<String> model[] = new DefaultComboBoxModel [Constants.NUM_OF_ALGORITHMS];
 	JButton sign_button;
 	
 	SignRequestPanel(MainFrame parent, CodeInterface code) {
@@ -95,38 +99,46 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 		Border b = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
 		authorities_panel.setBorder(BorderFactory.createTitledBorder(b, "Choose issuer"));
 		
-		JLabel label = new JLabel("Choose CA: ");
-		label.setBounds(10, 50, 80, 25);
-		
+		JLabel label = new JLabel("Choose a CA: ");
+		label.setBounds(10, 20, 80, 25);		
 		authorities = new JComboBox();
-		authorities.setBounds(100, 50, 240, 25);
-		authorities.addActionListener(this);		
+		authorities.setBounds(100, 20, 240, 25);
+		authorities.addActionListener(this);
+		
+		digest_algorithms = new JComboBox();
+		digest_algorithms.setBounds(100, 55, 240, 25);
+		digest_algorithms.setEnabled(false);		
 		
 		sign_button = new JButton("Sign");
 		sign_button.setBounds(100, 100, 150, 25);
 		sign_button.setEnabled(false);
 		sign_button.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 
-				if (code.signCertificate((String) authorities.getSelectedItem()))
+				if (code.signCertificate((String) authorities.getSelectedItem(), (String) digest_algorithms.getSelectedItem()))
 					dispose();
-			}
-			
+			}			
 		});
 		
-		populateCombobox();
+		populateComboboxes();
 		
 		authorities_panel.add(label);
-		authorities_panel.add(authorities);
+		authorities_panel.add(authorities);;
+		authorities_panel.add(digest_algorithms);
 		authorities_panel.add(sign_button);
 		
 		
 	}
 	
-	private void populateCombobox() {
-		List<String> certs = code.getIssuers();
+	private void populateComboboxes() {
+		for (int i = 0; i < Constants.NUM_OF_ALGORITHMS; i++) {
+			model[i] = new DefaultComboBoxModel<> ();
+			for (int j = 0; j < PublicKeyPanel.hashes[i].length; j++)
+				model[i].addElement(PublicKeyPanel.hashes[i][j]);
+		}
+		
+		List<String> certs = code.getIssuers(parent.toolbar_panel.keystore_panel.getSelectedValue());
 		authorities.addItem("Choose Certificate");
 		for (String alias : certs)
 			authorities.addItem(alias);
@@ -138,6 +150,7 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		if (authorities.getSelectedIndex() == 0) {
 			issuer_panel.resetPanel();
+			digest_algorithms.setEnabled(false);
 			sign_button.setEnabled(false);
 			return;
 		}
@@ -146,6 +159,15 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 		String keypair_name = (String) authorities.getSelectedItem();
 		String issuer = code.getIssuer(keypair_name);
 		issuer_panel.setInfo(issuer);
+			
+		digest_algorithms.setEnabled(true);
+		String issuer_algorithm = code.getIssuerPublicKeyAlgorithm(keypair_name);
+		switch (issuer_algorithm) {
+		case "DSA": digest_algorithms.setModel(model[Constants.DSA]); break;
+		case "RSA": digest_algorithms.setModel(model[Constants.RSA]); break;
+		case "EC": digest_algorithms.setModel(model[Constants.EC]); break;
+		}
+		
 	}
 
 }
