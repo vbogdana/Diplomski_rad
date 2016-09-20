@@ -100,13 +100,6 @@ public class MyKeyStore {
 	}
 	
 	public static void putChain(String keypair_name, PrivateKey key, Certificate[] chain, String password) throws KeyStoreException{
-		/*
-		SecureRandom random = new SecureRandom();
-		byte[] ivBytes = new byte[16];
-		random.nextBytes(ivBytes);
-		IvParameterSpec iv = new IvParameterSpec(ivBytes);
-		KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray(), "AES", iv);
-		*/
 		KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(password.toCharArray());
 		
 		KeyStore.PrivateKeyEntry entry = new KeyStore.PrivateKeyEntry(key, chain);

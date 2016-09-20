@@ -1,0 +1,20 @@
+PITANJA:
+GENUINE PROBLEM
+-- Da li sme da se desi da se razlikuju algoritmi za generisanje para kljuceva i algoritam potpisa jer ima samo jedan signature algoritam id? Sme reseno
+- Sta nakon resigninga? Imamo CA, CA1, A i B. CA je potpisao A, A je potpisao B. Chain od B-a je B, A, CA. Zatim CA1 potpise A. sta onda sa sertifikatima u chain-u B-a? Ostaje taj path
+- ne prikazuje certification path u sertifikatu. ako se instaliraju svi na putu u trusted cert store onda se prikazuje
+- ovo je samo simulacija generisanja serial_numbera, jer to treba da generise CA, da bi bio jedinstven za CA
+- V1 ne moze da bude CA, ali moze da potpisuje druge sertifikate? Ne moze, obezbedjeno
+- CSR ne radi kod ulancavanja vise od 2 sertifikata jer ne postoji vise subject signature algorithm id, i onda da ne bismo i tu nametali odredjeni algoritam potpisivanja, napravimo samo unsigned certificate request, odnosno samo certificate request info
+- Da li sme da se desi da neko ko nije CA potpise sertifikat? Ne, samo autoriteti smeju i oni sa key cert sign i basic constraints critical (oni mogu biti root i intermediate)
+- cert A na stvaranju sam sebe potpisuje npr sa MD2withRSA. Kada ga potpisuje CA namece mu svoj algoritam hasha, npr SHA256withDSA. Kada cert A zeli da potpise cert B svojim kljucem RSA, necemo znati koji hash da upotrebimo, sem da ili nametnemo CA-ov ili da pitamo (jer ne postoji nigde vise upamceno MD2withRSA, vec samo RSA)
+- onemoguci samopotpisivanje
+- odredjene kombinacije parametara public key algoritama i digest algoritama daju nevalidne potpise. u tom slucaju program javlja gresku, ali ne puca. to je do implementacije biblioteka
+- situacija sa same issuerom, but 2 set of keys i keyids (2 sertifikata) - kada potpisuju jedan drugog key store ne cuva chain
+
+
+
+Server run config
+-Djavax.net.ssl.keyStore=localKeyStore.jks -Djavax.net.ssl.keyStorePassword=localKeyStorePassword -Djava.protocol.handler.pkgs=com.sun.net.ssl.internal.www.protocol -Djavax.net.debug=ssl
+Client run config
+-Djavax.net.ssl.trustStore=localKeyStore.jks -Djavax.net.ssl.trustStorePassword=localKeyStorePassword -Djava.protocol.handler.pkgs=com.sun.net.ssl.internal.www.protocol -Djavax.net.debug=ssl

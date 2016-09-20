@@ -9,5 +9,5 @@ public class Constants {
 	
 	public static final int NUM_OF_EXTENSIONS = 15, NUM_OF_KU = 9;
 	public static final int KEY_CERT_SIGN = 5;
-	public static final int BC = 0, AKID = 1, SKID = 2, KU = 3;
+	public static final int BC = 0, AKID = 1, SKID = 2, KU = 3, PI = 4;
 }

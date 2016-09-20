@@ -34,15 +34,14 @@ import sun.security.provider.X509Factory;
 import code.GuiException;
 import x509.v3.CodeV3;
 
-public class MyCodeV3 extends CodeV3 {
+public class MyCode extends CodeV3 {
 	private String current_alias;
 	private MyX509Cert current_cert;
 	private Entry current_keyentry;
-	// TODO current_csr
 	// private PKCS10CertificationRequest current_csr;	
 	private CertificationRequestInfo current_csr_info;
 	
-	public MyCodeV3(boolean[] conf) throws GuiException {
+	public MyCode(boolean[] conf) throws GuiException {
 		super(conf);		
 	}
 	
@@ -201,7 +200,7 @@ public class MyCodeV3 extends CodeV3 {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			PrivateKeyEntry entry_issuer = MyKeyStore.getKey(issuer, MyKeyStore.localPassword);
 			X509Certificate cert_issuer = (X509Certificate) entry_issuer.getCertificate();
-			// TODO zbog CSR-a i UI-a signCertificate			
+			// TODO zbog UI-a signCertificate			
 			if (current_cert.version > Constants.V1) {
 				// ovde nesto mozda za ui
 				if (current_cert.version > Constants.V2) {
@@ -350,7 +349,6 @@ public class MyCodeV3 extends CodeV3 {
 
 	@Override
 	public boolean generateCSR(String keypair_name) {
-		// TODO generate csr zbog csra
 		/*try {
 			current_csr = current_cert.generateCSR(current_keyentry.getPrivateKey());			
 		} catch (OperatorCreationException e) {

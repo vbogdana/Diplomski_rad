@@ -41,6 +41,7 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 		isCA.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				// TODO
 				if (isCA.isSelected()) {
 					// Path length
 					pathLen.setEnabled(true);

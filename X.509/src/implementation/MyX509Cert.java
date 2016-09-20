@@ -24,6 +24,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSet;
@@ -33,12 +34,14 @@ import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.CertificatePolicies;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.PolicyInformation;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
@@ -258,7 +261,6 @@ public class MyX509Cert {
 	}
 	
 	public void loadExtensions(CertificationRequestInfo info) {
-		// TODO load extensions csr info
 		ASN1Set attrs = info.getAttributes();
 		Extensions e = null;
 	    for (int i = 0; i < attrs.size(); i++) {
@@ -466,15 +468,15 @@ public class MyX509Cert {
 		return usage;
 	}
 	
-	public void generateKeyUsage(boolean critical, boolean [] key_usage) throws IOException{
+	public void generateKeyUsage(boolean critical, boolean [] key_usage) throws IOException {
 		int usage = generateUsage(key_usage);
 		
 		if (usage != 0) {
-			extensions[Constants.KU] = new Extension(Extension.keyUsage, critical, new DEROctetString(new KeyUsage(usage)));
+			extensions[Constants.KU] = new Extension(asn1[Constants.KU], critical, new DEROctetString(new KeyUsage(usage)));
 		}
 	}
 	
-	public void getKeyUsage() throws IOException{
+	public void getKeyUsage() throws IOException {
 		boolean [] key_usage = certificate.getKeyUsage();
 		if (key_usage == null)
 			return;
@@ -485,7 +487,14 @@ public class MyX509Cert {
 			return;
 
 		boolean critical= isCritical(certificate, asn1[Constants.KU].getId());		
-		extensions[Constants.KU] = new Extension(Extension.keyUsage, critical, new DEROctetString(new KeyUsage(usage)));
+		extensions[Constants.KU] = new Extension(asn1[Constants.KU], critical, new DEROctetString(new KeyUsage(usage)));
 	}
 
+	public void generateCertificatePolicies(boolean critical, String [] identifiers, String [] qualifiers) throws IOException {
+		PolicyInformation [] policies = new PolicyInformation [identifiers.length];
+		for (PolicyInformation p : policies) {
+			p = new PolicyInformation(new ASN1ObjectIdentifier(identifiers[i]), new DERSet(qualifiers[i]));
+		}
+		extensions[Constants.PI] = new Extension(asn1[Constants.PI], critical, new DEROctetString(new CertificatePolicies(policies)));
+	}
 }
