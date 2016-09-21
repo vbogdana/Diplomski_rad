@@ -14,8 +14,6 @@ GENUINE PROBLEM
 - da li treba provera cert policies prilikom potpisivanja
 - proveri konfiguracije ekstenzija
 - javljaju se greske koje zavise od sha i duzine kljuca
-- nema ogranicenja za alternative names
-- da li ukloniti sva ogranicenja na ekstenzijama
 
 
 

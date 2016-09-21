@@ -140,6 +140,14 @@ public class MainFrame extends JFrame {
 	String getSubjectDirectoryAttribute(int i) { return ((extensions_panel.subject_directory_attributes_panel != null) ? extensions_panel.subject_directory_attributes_panel.getValue(i) : ""); }
 	String getGender() { return ((extensions_panel.subject_directory_attributes_panel != null) ? extensions_panel.subject_directory_attributes_panel.getGender() : ""); }
 	String getDateOfBirth() { return ((extensions_panel.subject_directory_attributes_panel != null) ? extensions_panel.subject_directory_attributes_panel.getDateOfBirth() : ""); }
+	boolean [] getExtendedKeyUsage() {
+		boolean [] key_usage = new boolean [Constants.NUM_OF_EKU];
+		if (extensions_panel.extended_key_usage_panel != null) {
+			for (int i = 0; i < Constants.NUM_OF_EKU; i++)
+				key_usage[i] = extensions_panel.extended_key_usage_panel.getKeyUsage(i);
+		}
+		return key_usage;
+	}
 	
 	// ********************************************************************************************************
 	// 												SETTERS
@@ -197,5 +205,10 @@ public class MainFrame extends JFrame {
 	void setSubjectDirectoryAttribute(int i, String v) {  if (extensions_panel.subject_directory_attributes_panel != null) extensions_panel.subject_directory_attributes_panel.setValue(i, v); }
 	void setGender(String v) {  if (extensions_panel.subject_directory_attributes_panel != null) extensions_panel.subject_directory_attributes_panel.setGender(v); }
 	void setDateOfBirth(String v) {  if (extensions_panel.subject_directory_attributes_panel != null) extensions_panel.subject_directory_attributes_panel.setDateOfBirth(v); }
-
+	void setExtendedKeyUsage(boolean [] key_usage) { 
+		if (extensions_panel.extended_key_usage_panel != null)
+			for (int i = 0; i < Constants.NUM_OF_EKU; i++)
+				extensions_panel.extended_key_usage_panel.setKeyUsage(i, key_usage[i]);
+	}
+	
 }

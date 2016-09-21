@@ -20,6 +20,7 @@ public class KeyStorePanel extends JPanel {
 	private JButton reset = new JButton ("Reset Local KeyStore"),
 			new_keypair = new JButton ("New Keypair"),
 			save_keypair = new JButton("Save"),
+			remove_keypair = new JButton("Remove Keypair"),
 			import_keypair = new JButton("Import (.p12)"),
 			export_keypair = new JButton("Export (.p12)");
 	
@@ -29,7 +30,7 @@ public class KeyStorePanel extends JPanel {
 		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 		
 		JPanel p = new JPanel();
-		p.setBounds(10, 10, 280, 165);
+		p.setBounds(10, 10, 280, 195);
 		p.setLayout(null);
 		p.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 		add(p);
@@ -37,20 +38,23 @@ public class KeyStorePanel extends JPanel {
 		reset.setBounds(55, 10, 170, 25);
 		new_keypair.setBounds(55, 50, 170, 25);
 		save_keypair.setBounds(55, 80, 170, 25);
-		import_keypair.setBounds(23, 130, 115, 25);
-		export_keypair.setBounds(142, 130, 115, 25);
+		remove_keypair.setBounds(55, 110, 170, 25);
+		import_keypair.setBounds(23, 160, 115, 25);
+		export_keypair.setBounds(142, 160, 115, 25);
 		p.add(reset);
 		p.add(new_keypair);
 		p.add(save_keypair);
+		p.add(remove_keypair);
 		p.add(import_keypair);
 		p.add(export_keypair);
 		
-		scroll_pane.setBounds(10, 185, 280, 205);
+		scroll_pane.setBounds(10, 215, 280, 175);
 		add(scroll_pane);
 		
 		reset.addActionListener(listener);
 		new_keypair.addActionListener(listener);
 		save_keypair.addActionListener(listener);
+		remove_keypair.addActionListener(listener);
 		import_keypair.addActionListener(listener);
 		export_keypair.addActionListener(listener);
 		
@@ -82,6 +86,7 @@ public class KeyStorePanel extends JPanel {
 		}
 		new_keypair.setEnabled(true);
 		save_keypair.setEnabled(true);
+		remove_keypair.setEnabled(false);
 		import_keypair.setEnabled(true);
 		export_keypair.setEnabled(false);
 		
@@ -91,10 +96,19 @@ public class KeyStorePanel extends JPanel {
 	void enablePanel(boolean flag) {
 		save_keypair.setEnabled(!flag);
 		export_keypair.setEnabled(flag);
+		remove_keypair.setEnabled(flag);
 	}
 
 	void addKeypair(String name) {
 		keystore_model.addElement(name);		
+	}
+	
+	void removeKeypair(String name) {
+		for (int i = 0; i < keystore_model.size(); i++)
+			if (keystore_model.getElementAt(i).equals(name)) {
+				keystore_model.remove(i);
+				break;
+			}
 	}
 
 	int getSelectedIndex() {

@@ -17,12 +17,13 @@ public class ExtensionsPanel extends JPanel {
 	final JPanel panel = new JPanel();
 	MainFrame parent;
 	ExtensionPanel [] extension_panels = new ExtensionPanel [Constants.NUM_OF_EXTENSIONS];
-	BasicConstraintsPanel basic_constraints_panel;
 	KeyIdentifiersPanel key_identifiers_panel;
 	KeyUsagePanel key_usage_panel;
 	CertificatePoliciesPanel certificate_policies_panel;
 	AlternativeNamePanel subject_alternative_name_panel, issuer_alternative_name_panel;
 	SubjectDirectoryAttributesPanel subject_directory_attributes_panel;
+	BasicConstraintsPanel basic_constraints_panel;
+	ExtendedKeyUsagePanel extended_key_usage_panel;
 	
 	boolean [] isCritical = new boolean [Constants.NUM_OF_EXTENSIONS];
 	
@@ -39,21 +40,21 @@ public class ExtensionsPanel extends JPanel {
         	extension_panels[Constants.KU] = (key_usage_panel = new KeyUsagePanel(parent));
         if (extensions_conf[Constants.CP])
         	extension_panels[Constants.CP] = (certificate_policies_panel = new CertificatePoliciesPanel(parent));
-        // policy mappings not implemented
         if (extensions_conf[Constants.SAN])
         	extension_panels[Constants.SAN] = (subject_alternative_name_panel = new AlternativeNamePanel(parent, "Subject alternative name", Constants.SAN));
         if (extensions_conf[Constants.IAN])
         	extension_panels[Constants.IAN] = (issuer_alternative_name_panel = new AlternativeNamePanel(parent, "Issuer alternative name", Constants.IAN));
         if (extensions_conf[Constants.SDA])
         	extension_panels[Constants.SDA] = (subject_directory_attributes_panel = new SubjectDirectoryAttributesPanel(parent));
-        // TODO
         if (extensions_conf[Constants.BC])
         	extension_panels[Constants.BC] = (basic_constraints_panel = new BasicConstraintsPanel(parent));
+        if (extensions_conf[Constants.EKU])
+        	extension_panels[Constants.EKU] = (extended_key_usage_panel = new ExtendedKeyUsagePanel(parent));
+        // TODO
         /*
         generatePolicyMappingsPanel();
         generateNameConstraintsPanel();
         generatePolicyConstraintsPanel();
-        generateExtendedKeyUsagePanel();
         generateCRLDistributionPointsPanel();
         generateInhibitAnyPolicyPanel();
         generateFreshestCRLPanel();

@@ -28,6 +28,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			case "Reset Local KeyStore": resetLocalKeystorePerformed(); break;
 			case "New Keypair": newKeypairPerformed(); break;
 			case "Save": saveKeypairPerformed(); break;
+			case "Remove Keypair": removeKeypairPerformed(); break;
 			case "Import (.p12)": importKeypairPerformed(); break;
 			case "Export (.p12)": exportKeypairPerformed(); break;
 			case "Sign certificate": signCertificatePerformed(); break;
@@ -113,6 +114,19 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 		} catch (DataException e) {
 			GuiInterface.reportError(e);
 		}
+	}
+	
+	private void removeKeypairPerformed() {
+		String keypair_name = mainFrame.toolbar_panel.keystore_panel.getSelectedValue();
+	    if (code.removeKeypairFromKeystore(keypair_name)) {
+	    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully removed!");
+	    	mainFrame.toolbar_panel.keystore_panel.removeKeypair(keypair_name);
+	    	// reset
+			mainFrame.toolbar_panel.resetPanel();
+			mainFrame.resetPanel();
+			// enable
+			mainFrame.enablePanel(true);
+	    }
 	}
 	
 	private void importKeypairPerformed() {

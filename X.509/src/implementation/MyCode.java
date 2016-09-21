@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyStore.Entry;
 import java.security.KeyStore.PrivateKeyEntry;
 import java.security.KeyStore.TrustedCertificateEntry;
@@ -21,10 +22,16 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
@@ -57,6 +64,11 @@ public class MyCode extends CodeV3 {
 		}
 		
 		return certificates;
+	}
+	
+	@Override
+	public void resetLocalKeyStore() {
+		MyKeyStore.delete(MyKeyStore.localKeyStore);
 	}
 	
 	@Override
@@ -106,10 +118,10 @@ public class MyCode extends CodeV3 {
 			cert.issuer = cert.subject;
 			cert.generateKeypair();
 			if (cert.version > Constants.V1) {
+				// TODO save key uid v2
 				cert.subject_ui = access.getSubjectUniqueIdentifier();
 				cert.issuer_ui = cert.subject_ui;			
 				if (cert.version > Constants.V2) {
-					// TODO save key zbog v2 i v3
 					// Basic Constraints
 					if (access.isSupported(Constants.BC)) cert.generateBasicConstraint(access.isCritical(Constants.BC), access.isCA(), access.getPathLen());
 					// Authority and subject key identifiers
@@ -127,6 +139,9 @@ public class MyCode extends CodeV3 {
 					if (access.isSupported(Constants.IAN)) cert.generateAlternativeName(access.isCritical(Constants.IAN), access.getAlternativeName(Constants.IAN), Constants.IAN);
 					// Subject directory attributes
 					if (access.isSupported(Constants.SDA)) cert.generateSubjectDirectoryAttributes(access.isCritical(Constants.SDA), access.getDateOfBirth(), access.getSubjectDirectoryAttribute(Constants.POB), access.getGender(), access.getSubjectDirectoryAttribute(Constants.COC));
+					// Extended Key usage
+					if (access.isSupported(Constants.EKU)) cert.generateExtendedKeyUsage(access.isCritical(Constants.EKU), access.getExtendedKeyUsage());
+					// TODO save key v3
 				}
 			}					
 			cert.generateCertificate(cert.keypair.getPrivate());		
@@ -138,22 +153,28 @@ public class MyCode extends CodeV3 {
 				| KeyStoreException | IOException e) {
 			GuiInterface.reportError(e);
 			return false;
-		}
-		
+		}		
 		return true;
 	}
-
-	@Override
-	public void resetLocalKeyStore() {
-		MyKeyStore.delete(MyKeyStore.localKeyStore);
-	}
 	
+	@Override
+	public boolean removeKeypairFromKeystore(String keypair_name) {
+		try {
+			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+			MyKeyStore.removeEntry(keypair_name);
+			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);			
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
+			GuiInterface.reportError(e);
+			return false;
+		}
+		return true;
+	}
 
 	@Override
 	public boolean importKeypair(String keypair_name, String file, String password) {
 		// load keypair using a unique alias (unique for keystore)
 		try {
-			MyKeyStore.load(file, password);
+			MyKeyStore.loadAES(file, password);
 			Enumeration<String> aliases = MyKeyStore.ks.aliases();
 			String file_name = "";
 		    int i = 0;
@@ -176,7 +197,10 @@ public class MyCode extends CodeV3 {
 			}
 			MyKeyStore.putKey(keypair_name, imported.getPrivateKey(), imported.getCertificate(), MyKeyStore.localPassword);
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException 
+				| IOException | UnrecoverableEntryException | InvalidKeyException 
+				| InvalidKeySpecException | NoSuchPaddingException | IllegalBlockSizeException 
+				| BadPaddingException | InvalidAlgorithmParameterException e) {
 			GuiInterface.reportError(e);
 			return false;
 		}
@@ -193,8 +217,10 @@ public class MyCode extends CodeV3 {
 			}				
 			MyKeyStore.load(file + ".p12", null);
 			MyKeyStore.putChain(keypair_name, ((PrivateKeyEntry) current_keyentry).getPrivateKey(), ((PrivateKeyEntry) current_keyentry).getCertificateChain(), password);
-			MyKeyStore.store(file + ".p12", password);
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
+			MyKeyStore.storeAES(file + ".p12", password);
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException 
+				| IOException | InvalidKeyException | InvalidKeySpecException 
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidParameterSpecException e) {
 			GuiInterface.reportError(e);
 			return false;
 		}
@@ -206,10 +232,9 @@ public class MyCode extends CodeV3 {
 		try {		
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			PrivateKeyEntry entry_issuer = MyKeyStore.getKey(issuer, MyKeyStore.localPassword);
-			X509Certificate cert_issuer = (X509Certificate) entry_issuer.getCertificate();
-			// TODO zbog UI-a signCertificate			
+			X509Certificate cert_issuer = (X509Certificate) entry_issuer.getCertificate();			
 			if (current_cert.version > Constants.V1) {
-				// ovde nesto mozda za ui
+				// TODO zbog UI-a signCertificate
 				if (current_cert.version > Constants.V2) {
 					//current_cert.loadExtensions(current_csr);
 					current_cert.loadExtensions(current_csr_info);
@@ -271,7 +296,7 @@ public class MyCode extends CodeV3 {
 	}
 
 	@Override
-	public void exportCertificate(File file, int encoding) {	
+	public boolean exportCertificate(File file, int encoding) {	
 		FileOutputStream fos;
 		try {
 			fos = new FileOutputStream(file.getAbsolutePath() + ".cer");
@@ -292,7 +317,9 @@ public class MyCode extends CodeV3 {
 		    fos.close();
 		} catch (IOException | CertificateEncodingException e) {
 			GuiInterface.reportError(e);
-		}   
+			return false;
+		}
+		return true;
 	}
 		
 
@@ -367,7 +394,7 @@ public class MyCode extends CodeV3 {
 		
 	}
 	
-	public boolean loadCertificateToGui() throws IOException {
+	private boolean loadCertificateToGui() throws IOException {
 		// TODO zbog v2 i v3 load to gui
 		boolean signed = false;
 		
@@ -398,17 +425,19 @@ public class MyCode extends CodeV3 {
 					else
 						access.setCritical(i, current_cert.extensions[i].isCritical());
 				
-				// Basic Constraints				
-				if (current_cert.constraint == -1) {
-					access.setCA(false);
-					access.setPathLen("");
-				} else {
-					access.setCA(true);
-					if (current_cert.constraint == Integer.MAX_VALUE)
+				// Basic Constraints	
+				if (current_cert.extensions[Constants.BC] != null) {
+					if (current_cert.constraint == -1) {
+						access.setCA(false);
 						access.setPathLen("");
-					else
-						access.setPathLen(String.valueOf(current_cert.constraint));
-						
+					} else {
+						access.setCA(true);
+						if (current_cert.constraint == Integer.MAX_VALUE)
+							access.setPathLen("");
+						else
+							access.setPathLen(String.valueOf(current_cert.constraint));
+							
+					}
 				}
 				// Key Identifiers
 				if (signed && current_cert.extensions[Constants.AKID] != null) {
@@ -441,6 +470,9 @@ public class MyCode extends CodeV3 {
 					access.setSubjectDirectoryAttribute(Constants.COC, current_cert.countryOfCitizenship);
 					access.setGender(current_cert.gender);
 				}
+				// Extended Key Usage
+				if (current_cert.extensions[Constants.EKU] != null && current_cert.extended_key_usage != null)
+					access.setExtendedKeyUsage(current_cert.extended_key_usage);
 					
 			}			
 		}

@@ -9,7 +9,6 @@ import javax.swing.JCheckBox;
 public class KeyUsagePanel extends ExtensionPanel {
 	JCheckBox key_usage[] = new JCheckBox [Constants.NUM_OF_KU];
 	
-
 	KeyUsagePanel(MainFrame mainFrame) {
 		super(mainFrame, "Key usage", Constants.KU);
 		//setBounds(10, 335, 510, 160);

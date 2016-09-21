@@ -26,6 +26,7 @@ public abstract class GuiInterfaceV3 extends GuiInterfaceV2 {
 	public String getSubjectDirectoryAttribute(int i) { return window.getSubjectDirectoryAttribute(i); }
 	public String getGender() { return window.getGender(); }
 	public String getDateOfBirth() { return window.getDateOfBirth(); }
+	public boolean [] getExtendedKeyUsage() { return window.getExtendedKeyUsage(); }
 	
 	// ********************************************************************************************************
 	// 												SETTERS
@@ -45,5 +46,6 @@ public abstract class GuiInterfaceV3 extends GuiInterfaceV2 {
 	public void setSubjectDirectoryAttribute(int i, String v) { window.setSubjectDirectoryAttribute(i, v); }
 	public void setGender(String v) { window.setGender(v); }
 	public void setDateOfBirth(String v) { window.setDateOfBirth(v); }
+	public void setExtendedKeyUsage( boolean [] key_usage) { window.setExtendedKeyUsage(key_usage); }
 	
 }
