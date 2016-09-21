@@ -24,9 +24,9 @@ import javax.security.auth.x500.X500Principal;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
-import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
@@ -42,6 +42,7 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.PolicyInformation;
+import org.bouncycastle.asn1.x509.PolicyQualifierInfo;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
@@ -65,10 +66,10 @@ public class MyX509Cert {
 	
 	public static final int V1 = 0, V2 = 1, V3 = 2;
 	public static final String DSA = "DSA", RSA = "RSA", GOST = "ECGOST3410", EC = "EC";
+	public static final String anyPolicy = "2.5.29.32.0";
 	
 	// TODO
-	public static final ASN1ObjectIdentifier [] asn1 = { Extension.basicConstraints,
-														 Extension.authorityKeyIdentifier,
+	public static final ASN1ObjectIdentifier [] asn1 = { Extension.authorityKeyIdentifier,
 														 Extension.subjectKeyIdentifier,
 														 Extension.keyUsage,
 														 Extension.certificatePolicies,
@@ -76,6 +77,7 @@ public class MyX509Cert {
 														 Extension.subjectAlternativeName,
 														 Extension.issuerAlternativeName,
 														 Extension.subjectDirectoryAttributes,
+														 Extension.basicConstraints,
 														 Extension.nameConstraints,
 														 Extension.policyConstraints,
 														 Extension.extendedKeyUsage,
@@ -99,6 +101,7 @@ public class MyX509Cert {
 	int constraint;
 	AuthorityKeyIdentifier akid;
 	SubjectKeyIdentifier skid;
+	String cpsUri = "";
 	
 	/**************************************************************************************
 	 										STATIC
@@ -215,28 +218,9 @@ public class MyX509Cert {
 				getAuthorityKeyIdentifier();
 				getSubjectKeyIdentifier();
 				getKeyUsage();
+				getCertificatePolicies();
 			}
 		}
-		/*	
-		
-		try {
-			String altern="";
-			int counter=0;
-			Collection<List<?>> names = cert.getIssuerAlternativeNames();
-			if (names!=null){
-				for (Iterator i=names.iterator(); i.hasNext(); ){
-					List<?> name=(List<?>) i.next();
-					if (counter!=0)
-						altern+=", ";
-					altern+=name.get(1);
-					counter++;
-				}
-			}
-			alternative_name.setText(altern);
-		} catch (CertificateParsingException e) {
-			e.printStackTrace();
-		}
-		*/
 	}
 	
 	public void loadExtensions(PKCS10CertificationRequest csr) {
@@ -486,15 +470,36 @@ public class MyX509Cert {
 		if (usage == 0)
 			return;
 
-		boolean critical= isCritical(certificate, asn1[Constants.KU].getId());		
+		boolean critical = isCritical(certificate, asn1[Constants.KU].getId());		
 		extensions[Constants.KU] = new Extension(asn1[Constants.KU], critical, new DEROctetString(new KeyUsage(usage)));
 	}
 
-	public void generateCertificatePolicies(boolean critical, String [] identifiers, String [] qualifiers) throws IOException {
-		PolicyInformation [] policies = new PolicyInformation [identifiers.length];
-		for (PolicyInformation p : policies) {
-			p = new PolicyInformation(new ASN1ObjectIdentifier(identifiers[i]), new DERSet(qualifiers[i]));
+	public void generateCertificatePolicies(boolean critical, String cpsUri) throws IOException {	
+		if (cpsUri !=  null && !cpsUri.equals("")) {
+			PolicyQualifierInfo qualifier = new PolicyQualifierInfo(cpsUri);
+			PolicyInformation [] policies = new PolicyInformation [1];
+			policies[0] = new PolicyInformation(new ASN1ObjectIdentifier(anyPolicy), new DERSequence(qualifier));
+			extensions[Constants.CP] = new Extension(asn1[Constants.CP], critical, new DEROctetString(new CertificatePolicies(policies)));
 		}
-		extensions[Constants.PI] = new Extension(asn1[Constants.PI], critical, new DEROctetString(new CertificatePolicies(policies)));
+	}
+	
+	public void getCertificatePolicies() throws IOException {
+		boolean critical = isCritical(certificate, asn1[Constants.CP].getId());
+		byte[] extvalue = getCoreExtValue(certificate, asn1[Constants.CP]);
+		if (extvalue != null) {
+			CertificatePolicies c = CertificatePolicies.getInstance(extvalue);	
+			if (c.getPolicyInformation() != null) {
+				PolicyInformation [] policies = new PolicyInformation [1];
+				policies[0] = c.getPolicyInformation(new ASN1ObjectIdentifier(anyPolicy));
+				if (policies[0] != null) {
+					extensions[Constants.CP] = new Extension(asn1[Constants.CP], critical, new DEROctetString(new CertificatePolicies(policies)));
+					if (policies[0].getPolicyQualifiers() != null && policies[0].getPolicyQualifiers().getObjectAt(0) != null) {
+						PolicyQualifierInfo qualifier = PolicyQualifierInfo.getInstance(policies[0].getPolicyQualifiers().getObjectAt(0));
+						if (qualifier != null && qualifier.getQualifier() != null)
+							cpsUri = qualifier.getQualifier().toString();
+					}
+				}
+			}
+		}	
 	}
 }

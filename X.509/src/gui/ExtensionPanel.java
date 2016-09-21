@@ -48,9 +48,12 @@ public abstract class ExtensionPanel extends JPanel {
 	
 	abstract void resetPanel();
 	abstract void enablePanel(boolean flag);
+	abstract int getH();
+	abstract void setY(int y);
 	
 	boolean isCritical() { return isCritical.isSelected(); }
 	void setCritical(boolean flag) { isCritical.setSelected(flag); }
+	
 	
 
 }

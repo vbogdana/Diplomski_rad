@@ -5,8 +5,8 @@ import code.GuiException;
 
 public abstract class GuiInterfaceV2 extends GuiInterface {
 
-	public GuiInterfaceV2(boolean[] algorithm_conf, int supported_version, CodeInterface code) throws GuiException {
-		super(algorithm_conf, supported_version, code);
+	public GuiInterfaceV2(boolean[] algorithm_conf, int supported_version, boolean[] extensions_conf, CodeInterface code) throws GuiException {
+		super(algorithm_conf, supported_version, extensions_conf, code);
 	}
 	
 	// V2+

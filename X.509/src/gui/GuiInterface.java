@@ -12,7 +12,7 @@ public abstract class GuiInterface {
 	protected MainFrame window;
 	protected boolean algorithm_conf[];
 	
-	protected GuiInterface(boolean algorithm_conf[], int supported_version, CodeInterface code) throws GuiException {
+	protected GuiInterface(boolean[] algorithm_conf, int supported_version, boolean[] extensions_conf, CodeInterface code) throws GuiException {
 		this.algorithm_conf = algorithm_conf;
 		int algorithm = -1;
 		for (int i = 0; i < Constants.NUM_OF_ALGORITHMS; i++)
@@ -24,7 +24,7 @@ public abstract class GuiInterface {
 		if (algorithm == -1)
 			throw new GuiException("At least one public key algorithm must be enabled.");
 		
-		window = new MainFrame(algorithm_conf, supported_version, code);
+		window = new MainFrame(algorithm_conf, supported_version, extensions_conf, code);
 	}
 	
 	public static void reportError(Exception e) {

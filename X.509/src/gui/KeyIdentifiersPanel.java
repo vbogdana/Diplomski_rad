@@ -10,7 +10,7 @@ public class KeyIdentifiersPanel extends ExtensionPanel {
 
 	KeyIdentifiersPanel(MainFrame mainFrame) {
 		super(mainFrame, "Key Identifiers", Constants.AKID);
-		setBounds(10, 130, 510, 195);
+		//setBounds(10, 130, 510, 195);
 		
 		panel.setBounds(10, 50, 490, 135);
 		
@@ -87,6 +87,12 @@ public class KeyIdentifiersPanel extends ExtensionPanel {
 	void setSubjectKeyID(String subjectKeyID) {
 		this.subjectKeyID.setText(this.subjectKeyID.getText() + " " + subjectKeyID);
 	}
+
+	@Override
+	int getH() { return 195; }
+
+	@Override
+	void setY(int y) { setBounds(10, y, 510, 195); }
 	
 
 }

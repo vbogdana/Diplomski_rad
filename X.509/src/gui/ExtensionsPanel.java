@@ -20,25 +20,27 @@ public class ExtensionsPanel extends JPanel {
 	BasicConstraintsPanel basic_constraints_panel;
 	KeyIdentifiersPanel key_identifiers_panel;
 	KeyUsagePanel key_usage_panel;
+	CertificatePoliciesPanel certificate_policies_panel;
 	
 	boolean [] isCritical = new boolean [Constants.NUM_OF_EXTENSIONS];
 	
-	ExtensionsPanel(MainFrame parent) {
+	ExtensionsPanel(MainFrame parent, boolean[] extensions_conf) {
 		this.parent = parent;
 		setBounds(720, 420, 560, 200);
 		setLayout(new BorderLayout());
 		Border b = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-        setBorder(BorderFactory.createTitledBorder(b, "Certificate Version 3 Extensions"));
-				
-		panel.setLayout(null);
-        panel.setPreferredSize(new Dimension(530, 1520));
+        setBorder(BorderFactory.createTitledBorder(b, "Certificate Version 3 Extensions"));        
         
+        if (extensions_conf[Constants.AKID])
+        	extension_panels[Constants.AKID] = (key_identifiers_panel = new KeyIdentifiersPanel(parent));
+        if (extensions_conf[Constants.KU])
+        	extension_panels[Constants.KU] = (key_usage_panel = new KeyUsagePanel(parent));
+        if (extensions_conf[Constants.CP])
+        	extension_panels[Constants.CP] = (certificate_policies_panel = new CertificatePoliciesPanel(parent));
         // TODO
-        extension_panels[Constants.BC] = (basic_constraints_panel = new BasicConstraintsPanel(parent));
-        extension_panels[Constants.AKID] = (key_identifiers_panel = new KeyIdentifiersPanel(parent));
-        extension_panels[Constants.KU] = (key_usage_panel = new KeyUsagePanel(parent));
+        if (extensions_conf[Constants.BC])
+        	extension_panels[Constants.BC] = (basic_constraints_panel = new BasicConstraintsPanel(parent));
         /*
-        generateCertificatePoliciesPanel();
         generatePolicyMappingsPanel();
         generateSubjectAlternativeNamePanel();
         generateIssuerAlternativeNamePanel();
@@ -50,6 +52,16 @@ public class ExtensionsPanel extends JPanel {
         generateInhibitAnyPolicyPanel();
         generateFreshestCRLPanel();
         */
+        int Y = 10;
+        for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++) {
+        	if (extension_panels[i] != null) {
+        		extension_panels[i].setY(Y);
+        		Y += extension_panels[i].getH() + 10;
+        	}
+        }
+        
+        panel.setLayout(null);
+        panel.setPreferredSize(new Dimension(530, Y));		// 1520
         
         for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++) {
         	isCritical[i] = false;
@@ -85,7 +97,8 @@ public class ExtensionsPanel extends JPanel {
 	
 	void checkData() throws DataException {
 		// TODO
-		basic_constraints_panel.checkData();
+		if (basic_constraints_panel != null) basic_constraints_panel.checkData();
+		if (certificate_policies_panel != null) certificate_policies_panel.checkData();
 	}
 	
 	// ********************************************************************************************************
@@ -95,7 +108,7 @@ public class ExtensionsPanel extends JPanel {
 	boolean getCritical(int i) {
 		if (extension_panels[i] != null) 
 			return extension_panels[i].isCritical.isSelected();
-		else if (i == Constants.SKID)
+		else if (i == Constants.SKID && extension_panels[Constants.AKID] != null)
 			return extension_panels[Constants.AKID].isCritical.isSelected();
 		else
 			return false;

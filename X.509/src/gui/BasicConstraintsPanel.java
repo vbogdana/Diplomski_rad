@@ -20,7 +20,7 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 
 	BasicConstraintsPanel(MainFrame mainFrame) {
 		super(mainFrame, "Basic Constraints", Constants.BC);
-		setBounds(10, 10, 510, 110);
+		//setBounds(10, 10, 510, 110);
 		
 		panel.setBounds(10, 50, 490, 50);		
 		
@@ -41,32 +41,43 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 		isCA.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO
+				// TODO check nullove panela
 				if (isCA.isSelected()) {
 					// Path length
 					pathLen.setEnabled(true);
 					// Key IDs
-					mainFrame.extensions_panel.setCritical(Constants.AKID, false);
-					mainFrame.extensions_panel.key_identifiers_panel.setIsEnabled(true);
-					mainFrame.extensions_panel.key_identifiers_panel.isCritical.setEnabled(false);
-					mainFrame.extensions_panel.key_identifiers_panel.isEnabled.setEnabled(false);
-					// Key usage
-					mainFrame.extensions_panel.setCritical(Constants.KU, true);
-					mainFrame.extensions_panel.key_usage_panel.setKeyUsage(Constants.KEY_CERT_SIGN, true);
-					mainFrame.extensions_panel.key_usage_panel.isCritical.setEnabled(false);
-					mainFrame.extensions_panel.key_usage_panel.key_usage[Constants.KEY_CERT_SIGN].setEnabled(false);
+					if (mainFrame.extensions_panel.key_identifiers_panel != null) {
+						mainFrame.extensions_panel.setCritical(Constants.AKID, false);
+						mainFrame.extensions_panel.key_identifiers_panel.setIsEnabled(true);
+						mainFrame.extensions_panel.key_identifiers_panel.isCritical.setEnabled(false);
+						mainFrame.extensions_panel.key_identifiers_panel.isEnabled.setEnabled(false);	
+					}										
+					// Certificate policies
+					if (mainFrame.extensions_panel.certificate_policies_panel != null) {
+						mainFrame.extensions_panel.certificate_policies_panel.setAnyPolicy(true);
+						mainFrame.extensions_panel.certificate_policies_panel.anyPolicy.setEnabled(false);
+						mainFrame.extensions_panel.certificate_policies_panel.cpsUri.setEnabled(true);
+					}
 				} else {
 					// Path length
 					pathLen.setText("");
 					pathLen.setEnabled(false);
+					isCritical.setEnabled(true);
+					isCritical.setSelected(false);
 					// Key IDs
-					mainFrame.extensions_panel.key_identifiers_panel.resetPanel();
-					mainFrame.extensions_panel.key_identifiers_panel.enablePanel(true);
+					if (mainFrame.extensions_panel.key_identifiers_panel != null) {
+						mainFrame.extensions_panel.key_identifiers_panel.resetPanel();
+						mainFrame.extensions_panel.key_identifiers_panel.enablePanel(true);
+					}
 					// Key usage
-					mainFrame.extensions_panel.setCritical(Constants.KU, false);
-					mainFrame.extensions_panel.key_usage_panel.setKeyUsage(Constants.KEY_CERT_SIGN, false);
-					mainFrame.extensions_panel.key_usage_panel.isCritical.setEnabled(true);
-					mainFrame.extensions_panel.key_usage_panel.key_usage[Constants.KEY_CERT_SIGN].setEnabled(true);
+					if (mainFrame.extensions_panel.key_usage_panel != null) {
+						mainFrame.extensions_panel.key_usage_panel.setKeyUsage(Constants.KEY_CERT_SIGN, false);
+						mainFrame.extensions_panel.key_usage_panel.key_usage[Constants.KEY_CERT_SIGN].setEnabled(true);
+						mainFrame.extensions_panel.key_usage_panel.uncheckIsCritical();
+					}
+					// Certificate policies
+					if (mainFrame.extensions_panel.certificate_policies_panel != null)
+						mainFrame.extensions_panel.certificate_policies_panel.anyPolicy.setEnabled(true);
 				}				
 			}			
 		});
@@ -116,5 +127,11 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 	String getPathLen() { return pathLen.getText(); }
 	boolean isCertificateAuthority() { return isCA.isSelected(); }
 	void setCertificateAuthority(boolean v) { isCA.setSelected(v); }
+
+	@Override
+	int getH() { return 110; }
+
+	@Override
+	void setY(int y) { setBounds(10, y, 510, 110); }
 
 }

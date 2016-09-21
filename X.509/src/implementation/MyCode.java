@@ -41,8 +41,8 @@ public class MyCode extends CodeV3 {
 	// private PKCS10CertificationRequest current_csr;	
 	private CertificationRequestInfo current_csr_info;
 	
-	public MyCode(boolean[] conf) throws GuiException {
-		super(conf);		
+	public MyCode(boolean[] algorithm_conf, boolean[] extensions_conf) throws GuiException {
+		super(algorithm_conf, extensions_conf);		
 	}
 	
 	@Override
@@ -106,20 +106,20 @@ public class MyCode extends CodeV3 {
 			cert.generateKeypair();
 			if (cert.version > Constants.V1) {
 				cert.subject_ui = access.getSubjectUniqueIdentifier();
-				cert.issuer_ui = cert.subject_ui;
-				
-				
+				cert.issuer_ui = cert.subject_ui;			
 				if (cert.version > Constants.V2) {
 					// TODO save key zbog v2 i v3
 					// Basic Constraints
-					cert.generateBasicConstraint(access.isCritical(Constants.BC), access.isCA(), access.getPathLen());
+					if (access.isSupported(Constants.BC)) cert.generateBasicConstraint(access.isCritical(Constants.BC), access.isCA(), access.getPathLen());
 					// Authority and subject key identifiers
-					if (access.getEnabledKeyIdentifiers()) {
+					if (access.isSupported(Constants.AKID) && access.getEnabledKeyIdentifiers()) {
 						cert.generateAuthorityKeyIdentifier(access.isCritical(Constants.AKID));
 						cert.generateSubjectKeyIdentifier(access.isCritical(Constants.AKID));
 					}				
 					// Key usage
-					cert.generateKeyUsage(access.isCritical(Constants.KU), access.getKeyUsage());
+					if (access.isSupported(Constants.KU)) cert.generateKeyUsage(access.isCritical(Constants.KU), access.getKeyUsage());
+					// Certificate policies
+					if (access.isSupported(Constants.CP)) cert.generateCertificatePolicies(access.isCritical(Constants.CP), access.getCpsUri());
 				}
 			}					
 			cert.generateCertificate(cert.keypair.getPrivate());		
@@ -417,6 +417,11 @@ public class MyCode extends CodeV3 {
 				if (current_cert.extensions[Constants.KU] != null && current_cert.certificate.getKeyUsage() != null) {
 					access.setKeyUsage(current_cert.certificate.getKeyUsage());
 				}
+				// Certificate policies
+				if (current_cert.extensions[Constants.CP] != null) {
+					access.setAnyPolicy(true);
+					access.setCpsUri(current_cert.cpsUri);
+				}	
 			}			
 		}
 		return signed;

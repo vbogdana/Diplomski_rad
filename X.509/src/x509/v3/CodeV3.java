@@ -6,7 +6,7 @@ import code.GuiException;
 public abstract class CodeV3 implements CodeInterface {
 	protected GuiV3 access;
 	
-	public CodeV3(boolean[] conf) throws GuiException {
-		this.access = new GuiV3(conf, this);
+	public CodeV3(boolean[] algorithm_conf, boolean[] extensions_conf) throws GuiException {
+		this.access = new GuiV3(algorithm_conf, extensions_conf, this);
 	}
 }

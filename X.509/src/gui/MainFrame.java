@@ -23,7 +23,7 @@ public class MainFrame extends JFrame {
 	ExtensionsPanel extensions_panel;									// EXTENSIONS PANEL
 
 	
-	MainFrame(boolean algorithm_conf[], int supported_version, CodeInterface code) {
+	MainFrame(boolean [] algorithm_conf, int supported_version, boolean [] extensions_conf, CodeInterface code) {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setTitle("X.509 Certificate Manager");
 		setSize(1310, 670);
@@ -43,7 +43,7 @@ public class MainFrame extends JFrame {
 		public_key_panel = new PublicKeyPanel(this, algorithm_conf);
 		// V3
 		if (supported_version >= Constants.V3)
-			extensions_panel = new ExtensionsPanel(this);
+			extensions_panel = new ExtensionsPanel(this, extensions_conf);
 		
 		getContentPane().add(toolbar_panel);
 		getContentPane().add(version_panel);
@@ -114,16 +114,20 @@ public class MainFrame extends JFrame {
 	String getPublicKeySignatureAlgorithm() { return public_key_panel.getSignatureAlgorithm(); }
 	
 	// V3
-	boolean isCritical(int i) { return ((supported_version >= Constants.V3) ? extensions_panel.getCritical(i) : false); }
-	String getPathLen() { return ((supported_version >= Constants.V3) ? extensions_panel.basic_constraints_panel.getPathLen() : ""); }
-	boolean isCA() { return ((supported_version >= Constants.V3) ? extensions_panel.basic_constraints_panel.isCertificateAuthority() : false); }
-	boolean getEnabledKID() { return extensions_panel.key_identifiers_panel.getIsEnabled(); }
+	boolean isCritical(int i) { return ((extensions_panel.extension_panels[i] != null) ? extensions_panel.getCritical(i) : false); }
+	String getPathLen() { return ((extensions_panel.basic_constraints_panel != null)  ? extensions_panel.basic_constraints_panel.getPathLen() : ""); }
+	boolean isCA() { return ((extensions_panel.basic_constraints_panel != null) ? extensions_panel.basic_constraints_panel.isCertificateAuthority() : false); }
+	boolean getEnabledKID() { return ((extensions_panel.key_identifiers_panel != null) ? extensions_panel.key_identifiers_panel.getIsEnabled() : false); }
 	boolean [] getKeyUsage() {
 		boolean [] key_usage = new boolean [Constants.NUM_OF_KU];
-		for (int i = 0; i < Constants.NUM_OF_KU; i++)
-			key_usage[i] = extensions_panel.key_usage_panel.getKeyUsage(i);
+		if (extensions_panel.key_usage_panel != null) {
+			for (int i = 0; i < Constants.NUM_OF_KU; i++)
+				key_usage[i] = extensions_panel.key_usage_panel.getKeyUsage(i);
+		}
 		return key_usage;
 	}
+	String getCpsUri() { return ((extensions_panel.certificate_policies_panel != null) ? extensions_panel.certificate_policies_panel.getCpsUri() : ""); }
+	boolean getAnyPolicy() { return ((extensions_panel.certificate_policies_panel != null) ? extensions_panel.certificate_policies_panel.getAnyPolicy() : false); }
 	
 	// ********************************************************************************************************
 	// 												SETTERS
@@ -156,16 +160,19 @@ public class MainFrame extends JFrame {
 	void setPublicKeySignatureAlgorithm(String v) { public_key_panel.setSignatureAlgorithm(v); }
 	
 	// V3
-	void setCritical(int i, boolean v) { if (supported_version >= Constants.V3) extensions_panel.setCritical(i, v); }
-	void setPathLen(String v) { if (supported_version >= Constants.V3) extensions_panel.basic_constraints_panel.setPathLen(v); }
-	void setCA(boolean v) { if (supported_version >= Constants.V3) extensions_panel.basic_constraints_panel.setCertificateAuthority(v); }
-	void setEnabledKID(boolean v) { extensions_panel.key_identifiers_panel.setIsEnabled(v); }
-	void setAuthorityKeyID(String authorityKeyID) { extensions_panel.key_identifiers_panel.setAuthorityKeyID(authorityKeyID); }
-	void setAuthorityIssuer(String authorityIssuer) { extensions_panel.key_identifiers_panel.setAuthorityIssuer(authorityIssuer); }
-	void setAuthoritySerialNumber(String authoritySerialNumber) { extensions_panel.key_identifiers_panel.setAuthoritySerialNumber(authoritySerialNumber); }
-	void setSubjectKeyID(String subjectKeyID) { extensions_panel.key_identifiers_panel.setSubjectKeyID(subjectKeyID); }
-	void setKeyUsage(boolean [] key_usage) {
-		for (int i = 0; i < Constants.NUM_OF_KU; i++)
-			extensions_panel.key_usage_panel.setKeyUsage(i, key_usage[i]);
+	void setCritical(int i, boolean v) { if (extensions_panel.extension_panels[i] != null) extensions_panel.setCritical(i, v); }
+	void setPathLen(String v) { if (extensions_panel.basic_constraints_panel != null) extensions_panel.basic_constraints_panel.setPathLen(v); }
+	void setCA(boolean v) { if (extensions_panel.basic_constraints_panel != null) extensions_panel.basic_constraints_panel.setCertificateAuthority(v); }
+	void setEnabledKID(boolean v) { if (extensions_panel.key_identifiers_panel != null) extensions_panel.key_identifiers_panel.setIsEnabled(v); }
+	void setAuthorityKeyID(String authorityKeyID) { if (extensions_panel.key_identifiers_panel != null) extensions_panel.key_identifiers_panel.setAuthorityKeyID(authorityKeyID); }
+	void setAuthorityIssuer(String authorityIssuer) { if (extensions_panel.key_identifiers_panel != null) extensions_panel.key_identifiers_panel.setAuthorityIssuer(authorityIssuer); }
+	void setAuthoritySerialNumber(String authoritySerialNumber) { if (extensions_panel.key_identifiers_panel != null) extensions_panel.key_identifiers_panel.setAuthoritySerialNumber(authoritySerialNumber); }
+	void setSubjectKeyID(String subjectKeyID) { if (extensions_panel.key_identifiers_panel != null) extensions_panel.key_identifiers_panel.setSubjectKeyID(subjectKeyID); }
+	void setKeyUsage(boolean [] key_usage) { 
+		if (extensions_panel.key_usage_panel != null)
+			for (int i = 0; i < Constants.NUM_OF_KU; i++)
+				extensions_panel.key_usage_panel.setKeyUsage(i, key_usage[i]);
 	}
+	void setCpsUri(String v) { if (extensions_panel.certificate_policies_panel != null) extensions_panel.certificate_policies_panel.setCpsUri(v); }
+	void setAnyPolicy(boolean v) { if (extensions_panel.certificate_policies_panel != null) extensions_panel.certificate_policies_panel.setAnyPolicy(v); }
 }
