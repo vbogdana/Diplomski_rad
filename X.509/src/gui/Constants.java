@@ -12,4 +12,5 @@ public class Constants {
 	public static final int AKID = 0, SKID = 1, KU = 2, CP = 3, PM = 4, 
 							SAN = 5, IAN = 6, SDA = 7, BC = 8, NC = 9, 
 							PC = 10, EKU = 11, CRLDP = 12, IAP = 13, FCRL = 14;
+	public static final int POB = 0, COC = 1, M = 0, F = 1;			// subject directory attributes
 }

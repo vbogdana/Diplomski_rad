@@ -128,6 +128,18 @@ public class MainFrame extends JFrame {
 	}
 	String getCpsUri() { return ((extensions_panel.certificate_policies_panel != null) ? extensions_panel.certificate_policies_panel.getCpsUri() : ""); }
 	boolean getAnyPolicy() { return ((extensions_panel.certificate_policies_panel != null) ? extensions_panel.certificate_policies_panel.getAnyPolicy() : false); }
+	String[] getAlternativeName(int i) { 
+		String [] names = {};
+		if (extensions_panel.extension_panels[i] != null)
+			switch (i) {
+			case Constants.SAN: names = extensions_panel.subject_alternative_name_panel.getAlternativeNames(); break;
+			case Constants.IAN: names = extensions_panel.issuer_alternative_name_panel.getAlternativeNames(); break;
+			}
+		return names;
+	}
+	String getSubjectDirectoryAttribute(int i) { return ((extensions_panel.subject_directory_attributes_panel != null) ? extensions_panel.subject_directory_attributes_panel.getValue(i) : ""); }
+	String getGender() { return ((extensions_panel.subject_directory_attributes_panel != null) ? extensions_panel.subject_directory_attributes_panel.getGender() : ""); }
+	String getDateOfBirth() { return ((extensions_panel.subject_directory_attributes_panel != null) ? extensions_panel.subject_directory_attributes_panel.getDateOfBirth() : ""); }
 	
 	// ********************************************************************************************************
 	// 												SETTERS
@@ -175,4 +187,15 @@ public class MainFrame extends JFrame {
 	}
 	void setCpsUri(String v) { if (extensions_panel.certificate_policies_panel != null) extensions_panel.certificate_policies_panel.setCpsUri(v); }
 	void setAnyPolicy(boolean v) { if (extensions_panel.certificate_policies_panel != null) extensions_panel.certificate_policies_panel.setAnyPolicy(v); }
+	void setAlternativeName(int i, String v) { 
+		if (extensions_panel.extension_panels[i] != null)
+			switch (i) {
+			case Constants.SAN: extensions_panel.subject_alternative_name_panel.setAlternativeNames(v); break;
+			case Constants.IAN: extensions_panel.issuer_alternative_name_panel.setAlternativeNames(v); break;
+			} 
+	}
+	void setSubjectDirectoryAttribute(int i, String v) {  if (extensions_panel.subject_directory_attributes_panel != null) extensions_panel.subject_directory_attributes_panel.setValue(i, v); }
+	void setGender(String v) {  if (extensions_panel.subject_directory_attributes_panel != null) extensions_panel.subject_directory_attributes_panel.setGender(v); }
+	void setDateOfBirth(String v) {  if (extensions_panel.subject_directory_attributes_panel != null) extensions_panel.subject_directory_attributes_panel.setDateOfBirth(v); }
+
 }

@@ -93,7 +93,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			((SubjectPanel) mainFrame.subject_panel).checkData();
 			mainFrame.serial_number_panel.checkData();
 			mainFrame.validity_panel.checkData();
-			if (mainFrame.supported_version >= Constants.V3)
+			if (mainFrame.supported_version >= Constants.V3 && mainFrame.version_panel.getVersion() > Constants.V2)
 				mainFrame.extensions_panel.checkData();
 			
 			String keypair_name = JOptionPane.showInputDialog(mainFrame, "Name: ", null);

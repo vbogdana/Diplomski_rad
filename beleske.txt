@@ -11,6 +11,11 @@ GENUINE PROBLEM
 - onemoguci samopotpisivanje
 - odredjene kombinacije parametara public key algoritama i digest algoritama daju nevalidne potpise. u tom slucaju program javlja gresku, ali ne puca. to je do implementacije biblioteka
 - situacija sa same issuerom, but 2 set of keys i keyids (2 sertifikata) - kada potpisuju jedan drugog key store ne cuva chain
+- da li treba provera cert policies prilikom potpisivanja
+- proveri konfiguracije ekstenzija
+- javljaju se greske koje zavise od sha i duzine kljuca
+- nema ogranicenja za alternative names
+- da li ukloniti sva ogranicenja na ekstenzijama
 
 
 

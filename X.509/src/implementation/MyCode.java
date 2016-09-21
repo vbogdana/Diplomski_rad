@@ -21,6 +21,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -74,7 +75,7 @@ public class MyCode extends CodeV3 {
 			current_keyentry = entry;
 			current_alias = keypair_name;
 			signed = loadCertificateToGui();
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException | ParseException e) {
 			GuiInterface.reportError(e);
 			return -1;
 		}
@@ -120,6 +121,12 @@ public class MyCode extends CodeV3 {
 					if (access.isSupported(Constants.KU)) cert.generateKeyUsage(access.isCritical(Constants.KU), access.getKeyUsage());
 					// Certificate policies
 					if (access.isSupported(Constants.CP)) cert.generateCertificatePolicies(access.isCritical(Constants.CP), access.getCpsUri());
+					// Subject alternative name
+					if (access.isSupported(Constants.SAN)) cert.generateAlternativeName(access.isCritical(Constants.SAN), access.getAlternativeName(Constants.SAN), Constants.SAN);
+					// Issuer alternative name
+					if (access.isSupported(Constants.IAN)) cert.generateAlternativeName(access.isCritical(Constants.IAN), access.getAlternativeName(Constants.IAN), Constants.IAN);
+					// Subject directory attributes
+					if (access.isSupported(Constants.SDA)) cert.generateSubjectDirectoryAttributes(access.isCritical(Constants.SDA), access.getDateOfBirth(), access.getSubjectDirectoryAttribute(Constants.POB), access.getGender(), access.getSubjectDirectoryAttribute(Constants.COC));
 				}
 			}					
 			cert.generateCertificate(cert.keypair.getPrivate());		
@@ -409,19 +416,32 @@ public class MyCode extends CodeV3 {
 					if (current_cert.akid.getAuthorityCertIssuer() != null )
 						access.setAuthorityIssuer((current_cert.akid.getAuthorityCertIssuer().getNames())[0].toString());
 					if (current_cert.akid.getAuthorityCertSerialNumber() != null)
-					access.setAuthoritySerialNumber(String.valueOf(current_cert.akid.getAuthorityCertSerialNumber()));
+						access.setAuthoritySerialNumber(String.valueOf(current_cert.akid.getAuthorityCertSerialNumber()));
 				}
 				if (current_cert.extensions[Constants.SKID] != null && current_cert.skid.getKeyIdentifier() != null)
 					access.setSubjectKeyID(String.valueOf(new DEROctetString(current_cert.skid.getKeyIdentifier())));
 				// Key Usage
-				if (current_cert.extensions[Constants.KU] != null && current_cert.certificate.getKeyUsage() != null) {
+				if (current_cert.extensions[Constants.KU] != null && current_cert.certificate.getKeyUsage() != null)
 					access.setKeyUsage(current_cert.certificate.getKeyUsage());
-				}
 				// Certificate policies
 				if (current_cert.extensions[Constants.CP] != null) {
 					access.setAnyPolicy(true);
 					access.setCpsUri(current_cert.cpsUri);
-				}	
+				}
+				// Subject alternative name
+				if (current_cert.extensions[Constants.SAN] != null)
+					access.setAlternativeName(Constants.SAN, current_cert.subject_alternative_name);
+				// Issuer alternative name
+				if (current_cert.extensions[Constants.IAN] != null)
+					access.setAlternativeName(Constants.IAN, current_cert.issuer_alternative_name);
+				// Subject directory attributes
+				if (current_cert.extensions[Constants.SDA] != null) {
+					access.setDateOfBirth(current_cert.dateOfBirth);
+					access.setSubjectDirectoryAttribute(Constants.POB, current_cert.placeOfBirth);
+					access.setSubjectDirectoryAttribute(Constants.COC, current_cert.countryOfCitizenship);
+					access.setGender(current_cert.gender);
+				}
+					
 			}			
 		}
 		return signed;

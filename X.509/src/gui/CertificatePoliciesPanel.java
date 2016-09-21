@@ -83,15 +83,16 @@ public class CertificatePoliciesPanel extends ExtensionPanel {
 	}
 	
 	void checkData() throws DataException {
-		if (anyPolicy.isSelected() && (cpsUri.getText() == null || cpsUri.getText().equals(""))) 
-			throw new DataException("CPS URI is required.");
-		else {
-			Pattern p = Pattern.compile("(@)?(href=')?(HREF=')?(HREF=\")?(href=\")?(http://)?[a-zA-Z_0-9\\-]+(\\.\\w[a-zA-Z_0-9\\-]+)+(/[#&\\n\\-=?\\+\\%/\\.\\w]+)?");  
-		    Matcher m = p.matcher(cpsUri.getText()); 
-		    if (!m.matches())
-		    	throw new DataException("CPS URI is not valid.");
+		if (anyPolicy.isSelected()) {
+			if (cpsUri.getText() == null || cpsUri.getText().equals("")) 
+				throw new DataException("CPS URI is required.");
+			else  {
+				Pattern p = Pattern.compile("(@)?(href=')?(HREF=')?(HREF=\")?(href=\")?(http://)?[a-zA-Z_0-9\\-]+(\\.\\w[a-zA-Z_0-9\\-]+)+(/[#&\\n\\-=?\\+\\%/\\.\\w]+)?");  
+			    Matcher m = p.matcher(cpsUri.getText()); 
+			    if (!m.matches())
+			    	throw new DataException("CPS URI is not valid.");
+			}
 		}
-
 	}
 
 	boolean getAnyPolicy() { return anyPolicy.isSelected(); }

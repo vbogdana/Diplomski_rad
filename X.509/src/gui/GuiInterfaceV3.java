@@ -22,6 +22,10 @@ public abstract class GuiInterfaceV3 extends GuiInterfaceV2 {
 	public boolean [] getKeyUsage() { return window.getKeyUsage(); }
 	public String getCpsUri() { return window.getCpsUri(); }
 	public boolean getAnyPolicy() { return window.getAnyPolicy(); }
+	public String[] getAlternativeName(int i) { return window.getAlternativeName(i); }
+	public String getSubjectDirectoryAttribute(int i) { return window.getSubjectDirectoryAttribute(i); }
+	public String getGender() { return window.getGender(); }
+	public String getDateOfBirth() { return window.getDateOfBirth(); }
 	
 	// ********************************************************************************************************
 	// 												SETTERS
@@ -37,5 +41,9 @@ public abstract class GuiInterfaceV3 extends GuiInterfaceV2 {
 	public void setKeyUsage( boolean [] key_usage) { window.setKeyUsage(key_usage); }
 	public void setCpsUri(String v) { window.setCpsUri(v); }
 	public void setAnyPolicy(boolean v) { window.setAnyPolicy(v); }
+	public void setAlternativeName(int i, String v) { window.setAlternativeName(i, v); }
+	public void setSubjectDirectoryAttribute(int i, String v) { window.setSubjectDirectoryAttribute(i, v); }
+	public void setGender(String v) { window.setGender(v); }
+	public void setDateOfBirth(String v) { window.setDateOfBirth(v); }
 	
 }

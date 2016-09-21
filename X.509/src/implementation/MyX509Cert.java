@@ -1,6 +1,7 @@
 package implementation;
 
 import gui.Constants;
+import gui.GuiInterface;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -15,17 +16,29 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.security.auth.x500.X500Principal;
 
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1GeneralizedTime;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Set;
+import org.bouncycastle.asn1.ASN1String;
+import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.pkcs.Attribute;
@@ -43,8 +56,10 @@ import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.PolicyInformation;
 import org.bouncycastle.asn1.x509.PolicyQualifierInfo;
+import org.bouncycastle.asn1.x509.SubjectDirectoryAttributes;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x509.X509DefaultEntryConverter;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v1CertificateBuilder;
@@ -68,7 +83,6 @@ public class MyX509Cert {
 	public static final String DSA = "DSA", RSA = "RSA", GOST = "ECGOST3410", EC = "EC";
 	public static final String anyPolicy = "2.5.29.32.0";
 	
-	// TODO
 	public static final ASN1ObjectIdentifier [] asn1 = { Extension.authorityKeyIdentifier,
 														 Extension.subjectKeyIdentifier,
 														 Extension.keyUsage,
@@ -84,7 +98,13 @@ public class MyX509Cert {
 														 Extension.cRLDistributionPoints,
 														 Extension.inhibitAnyPolicy,
 														 Extension.freshestCRL 
-														};		
+														};	
+	public static final String id_pda = "1.3.6.1.5.5.7.9";
+	public static final String dateOfBirthOID = id_pda + ".1";
+	public static final String placeOfBirthOID = id_pda + ".2";
+	public static final String genderOID = id_pda + ".3";
+	public static final String countryOfCitizenshipOID = id_pda + ".4";
+	    
 	X509Certificate certificate;
 	KeyPair keypair;
 	SubjectPublicKeyInfo subPubKeyInfo;
@@ -102,6 +122,9 @@ public class MyX509Cert {
 	AuthorityKeyIdentifier akid;
 	SubjectKeyIdentifier skid;
 	String cpsUri = "";
+	String subject_alternative_name = "";
+	String issuer_alternative_name = "";
+	String dateOfBirth = "", gender = "", countryOfCitizenship = "", placeOfBirth = "";
 	
 	/**************************************************************************************
 	 										STATIC
@@ -196,7 +219,7 @@ public class MyX509Cert {
 	
 	public MyX509Cert() {}
 	
-	public MyX509Cert(X509Certificate cert) throws IOException {
+	public MyX509Cert(X509Certificate cert) throws IOException, CertificateParsingException, ParseException {
 		certificate = cert;
 		version = cert.getVersion() - 1;
 		serial_number = cert.getSerialNumber().toString();
@@ -219,6 +242,9 @@ public class MyX509Cert {
 				getSubjectKeyIdentifier();
 				getKeyUsage();
 				getCertificatePolicies();
+				getAlternativeName(Constants.SAN);
+				getAlternativeName(Constants.IAN);
+				getSubjectDirectoryAttributes();
 			}
 		}
 	}
@@ -501,5 +527,131 @@ public class MyX509Cert {
 				}
 			}
 		}	
+	}
+	
+	public void generateAlternativeName(boolean critical, String[] names, int type) throws IOException {
+		if (names.length > 0) {
+			GeneralName [] name = new GeneralName[names.length];
+			for (int i = 0; i < names.length; i++)
+				name[i] = new GeneralName(GeneralName.dNSName, names[i]);
+			GeneralNames general_names = new GeneralNames(name);
+			
+			extensions[type] = new Extension(asn1[type], critical, new DEROctetString(general_names));
+		}		
+	}
+	
+	public void getAlternativeName(int type) throws CertificateParsingException, IOException {
+		Collection<List<?>> names = null;
+		boolean critical = isCritical(certificate, asn1[type].getId());
+		switch (type) {
+		case Constants.SAN: names = certificate.getSubjectAlternativeNames(); break;
+		case Constants.IAN: names = certificate.getIssuerAlternativeNames(); break;
+		}
+		
+		String s = "";
+		if (names != null && !names.isEmpty()) {
+			GeneralName [] general_names = new GeneralName[names.size()];
+			Object[] array = names.toArray();
+			for (int i = 0; i < names.size(); i++) {
+				s += ((List<?>) array[i]).get(1);
+				if (i != names.size() - 1)
+					s += ", ";
+				general_names[i] = new GeneralName(GeneralName.dNSName, ((List<?>) array[i]).get(1).toString());
+			}
+			GeneralNames gn = new GeneralNames(general_names);
+			extensions[type] = new Extension(asn1[type], critical, new DEROctetString(gn));			
+		}
+		switch (type) {
+		case Constants.SAN: subject_alternative_name = s; break;
+		case Constants.IAN: issuer_alternative_name = s; break;
+		}
+	}
+	
+	public void generateSubjectDirectoryAttributes(boolean critical, String dateOfBirth, String placeOfBirth, String gender, String countryOfCitizenship) throws IOException {
+    	boolean any = false;
+		Attribute attr = null;
+    	ASN1EncodableVector attributes = new ASN1EncodableVector ();
+        if (!countryOfCitizenship.isEmpty()) {
+        	any = true;
+        	ASN1EncodableVector vec = new ASN1EncodableVector();
+        	vec.add(new DERPrintableString(countryOfCitizenship));
+        	attr = new Attribute(new ASN1ObjectIdentifier(countryOfCitizenshipOID), new DERSet(vec));
+        	attributes.add(attr);
+        }
+        if (!gender.isEmpty()) {
+        	any = true;
+        	ASN1EncodableVector vec = new ASN1EncodableVector();
+        	vec.add(new DERPrintableString(gender));
+        	attr = new Attribute(new ASN1ObjectIdentifier(genderOID),new DERSet(vec));
+        	attributes.add(attr);
+        }
+        if (!placeOfBirth.isEmpty()) {
+        	any = true;
+        	ASN1EncodableVector vec = new ASN1EncodableVector();
+        	X509DefaultEntryConverter conv = new X509DefaultEntryConverter();
+        	ASN1Primitive obj = conv.getConvertedValue(new ASN1ObjectIdentifier(placeOfBirthOID), placeOfBirth);
+        	vec.add(obj);
+        	attr = new Attribute(new ASN1ObjectIdentifier(placeOfBirthOID),new DERSet(vec));
+        	attributes.add(attr);
+        }        
+        // dateOfBirth that is a GeneralizedTime
+        // The correct format for this is YYYYMMDD, it will be padded to YYYYMMDD120000Z
+        if (!dateOfBirth.isEmpty()) {
+        	any = true;
+            if (dateOfBirth.length() == 8) {
+            	dateOfBirth += "120000Z"; // standard format according to rfc3739
+            	ASN1EncodableVector vec = new ASN1EncodableVector();
+                vec.add(new DERGeneralizedTime(dateOfBirth));
+                attr = new Attribute(new ASN1ObjectIdentifier(dateOfBirthOID),new DERSet(vec));
+                attributes.add(attr);
+            } else {
+                GuiInterface.reportError("Wrong length of data for 'dateOfBirth', should be of format YYYYMMDD, skipping...");
+            }
+        }
+        
+        if (any) {
+        	SubjectDirectoryAttributes sda = SubjectDirectoryAttributes.getInstance(new DERSequence(attributes));
+        	extensions[Constants.SDA] = new Extension(asn1[Constants.SDA], critical, new DEROctetString(sda));	
+        }
+	}
+	
+	public void getSubjectDirectoryAttributes() throws ParseException, IOException {
+		boolean critical = isCritical(certificate, asn1[Constants.SDA].getId());
+		byte[] extvalue = getCoreExtValue(certificate, asn1[Constants.SDA]);
+		if (extvalue != null) {
+			SubjectDirectoryAttributes sda = SubjectDirectoryAttributes.getInstance(extvalue);
+			extensions[Constants.SDA] = new Extension(asn1[Constants.SDA], critical, new DEROctetString(sda));
+			
+			@SuppressWarnings("rawtypes")
+			Vector attributes = sda.getAttributes();
+	        for (int i = 0; i < attributes.size(); i++) {
+	        	org.bouncycastle.asn1.x509.Attribute attr = org.bouncycastle.asn1.x509.Attribute.getInstance(attributes.get(i));
+	        	if (attr.getAttrType().getId().equals(dateOfBirthOID)) {
+	        		
+	        		ASN1Set set = attr.getAttrValues();
+	        		// Come on, we'll only allow one dateOfBirth, we're not allowing such frauds with multiple birth dates
+	        		ASN1GeneralizedTime time = ASN1GeneralizedTime.getInstance(set.getObjectAt(0));
+	        		Date date = time.getDate();
+	        		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+	        		dateOfBirth = sdf.format(date);
+	        		
+	        	}
+	        	if (attr.getAttrType().getId().equals(placeOfBirthOID)) {
+	        		ASN1Set set = attr.getAttrValues();
+	        		// same here only one placeOfBirth
+	        		placeOfBirth = ((ASN1String)set.getObjectAt(0)).getString();       			
+	        	}
+	        	if (attr.getAttrType().getId().equals(genderOID)) {
+	        		ASN1Set set = attr.getAttrValues();
+	        		// same here only one gender
+	        		gender = ((ASN1String)set.getObjectAt(0)).getString();      			
+	        	}
+	        	if (attr.getAttrType().getId().equals(countryOfCitizenshipOID)) {
+	        		ASN1Set set = attr.getAttrValues();
+	        		// same here only one citizenship
+	        		countryOfCitizenship = ((ASN1String)set.getObjectAt(0)).getString();       			
+	        	}
+	        }
+        }
 	}
 }
