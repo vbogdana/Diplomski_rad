@@ -9,7 +9,7 @@ public abstract class GuiInterfaceV2 extends GuiInterface {
 		super(algorithm_conf, supported_version, extensions_conf, code);
 	}
 	
-	// V2+
+	// V2+ (not implemented)
 	public String getSubjectUniqueIdentifier() { return window.getSubjectInfo(Constants.UI); }
 	public void setSubjectUniqueIdentifier(String v) { window.setSubjectInfo(Constants.UI, v); }
 	

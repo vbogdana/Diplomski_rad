@@ -16,7 +16,7 @@ import code.DataException;
 @SuppressWarnings("serial")
 public class SubjectPanel extends InfoPanel {
 	
-	private JTextField values[] = new JTextField [8];
+	private JTextField values[] = new JTextField [Constants.NUM_OF_INFO];
 
 	SubjectPanel(MainFrame parent) {
 		super(parent);
@@ -28,7 +28,7 @@ public class SubjectPanel extends InfoPanel {
 		Border b = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
         setBorder(BorderFactory.createTitledBorder(b, "Certificate Subject"));
 		
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < Constants.NUM_OF_INFO; i++) {
 			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
@@ -51,15 +51,15 @@ public class SubjectPanel extends InfoPanel {
 
 		values[Constants.SA].setEnabled(false);
 		// because at the start selected version is 1
-		if (parent.supported_version >= Constants.V2) {
+		/*if (parent.supported_version >= Constants.V2) {
 			labels[Constants.UI].setEnabled(false);
 			values[Constants.UI].setEnabled(false);
-		}
+		}*/
 	}
 	
 	void resetPanel() {
 		// TODO
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < Constants.NUM_OF_INFO; i++) {
 			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
@@ -72,7 +72,7 @@ public class SubjectPanel extends InfoPanel {
 
 	void enablePanel(boolean flag) {
 		// TODO check zbog v2
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < Constants.NUM_OF_INFO; i++) {
 			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
@@ -81,14 +81,16 @@ public class SubjectPanel extends InfoPanel {
 
 		if (flag) {
 			values[Constants.SA].setEnabled(false);
+			/*
 			if (parent.supported_version < Constants.V2)
 				return;
-
+			
 			if (parent.version_panel.getVersion() < Constants.V2)
 				enableV2(false);
 			else
 				enableV2(true);
-		} else {
+				*/
+		} /*else {
 			if (parent.supported_version < Constants.V2)
 				return;
 
@@ -96,16 +98,16 @@ public class SubjectPanel extends InfoPanel {
 				labels[Constants.UI].setEnabled(false);
 			else
 				labels[Constants.UI].setEnabled(true);
-		}
+		}*/
 
 	}
 	
 	void enableV2(boolean flag) {
-		labels[Constants.UI].setEnabled(flag);
+		/*labels[Constants.UI].setEnabled(flag);
 		values[Constants.UI].setEnabled(flag);
 		
 		if (!flag)
-			values[Constants.UI].setText("");
+			values[Constants.UI].setText("");*/
 	}
 	
 	void checkData() throws DataException {

@@ -118,9 +118,9 @@ public class MyCode extends CodeV3 {
 			cert.issuer = cert.subject;
 			cert.generateKeypair();
 			if (cert.version > Constants.V1) {
-				// TODO save key uid v2
-				cert.subject_ui = access.getSubjectUniqueIdentifier();
-				cert.issuer_ui = cert.subject_ui;			
+				// TODO save key v2
+				//cert.subject_ui = access.getSubjectUniqueIdentifier();
+				//cert.issuer_ui = cert.subject_ui;			
 				if (cert.version > Constants.V2) {
 					// Basic Constraints
 					if (access.isSupported(Constants.BC)) cert.generateBasicConstraint(access.isCritical(Constants.BC), access.isCA(), access.getPathLen());
@@ -141,7 +141,8 @@ public class MyCode extends CodeV3 {
 					if (access.isSupported(Constants.SDA)) cert.generateSubjectDirectoryAttributes(access.isCritical(Constants.SDA), access.getDateOfBirth(), access.getSubjectDirectoryAttribute(Constants.POB), access.getGender(), access.getSubjectDirectoryAttribute(Constants.COC));
 					// Extended Key usage
 					if (access.isSupported(Constants.EKU)) cert.generateExtendedKeyUsage(access.isCritical(Constants.EKU), access.getExtendedKeyUsage());
-					// TODO save key v3
+					// Inhibit any policy
+					if (access.isSupported(Constants.IAP)) cert.generateInhibitAnyPolicy(access.isCritical(Constants.IAP), access.getInhibitAnyPolicy(), access.getSkipCerts());					
 				}
 			}					
 			cert.generateCertificate(cert.keypair.getPrivate());		
@@ -395,7 +396,7 @@ public class MyCode extends CodeV3 {
 	}
 	
 	private boolean loadCertificateToGui() throws IOException {
-		// TODO zbog v2 i v3 load to gui
+		// TODO zbog v2
 		boolean signed = false;
 		
 		access.setVersion(current_cert.version);
@@ -473,7 +474,11 @@ public class MyCode extends CodeV3 {
 				// Extended Key Usage
 				if (current_cert.extensions[Constants.EKU] != null && current_cert.extended_key_usage != null)
 					access.setExtendedKeyUsage(current_cert.extended_key_usage);
-					
+				// Inhibit any policy
+				if (current_cert.extensions[Constants.IAP] != null) {
+					access.setInhibitAnyPolicy(true);
+					access.setSkipCerts(String.valueOf(current_cert.inhibitAnyPolicy));
+				}				
 			}			
 		}
 		return signed;

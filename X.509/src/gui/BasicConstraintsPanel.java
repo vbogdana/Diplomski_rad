@@ -41,7 +41,6 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 		isCA.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO check nullove panela
 				if (isCA.isSelected()) {
 					// Path length
 					pathLen.setEnabled(true);
@@ -62,6 +61,11 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 					if (mainFrame.extensions_panel.subject_directory_attributes_panel != null) {
 						mainFrame.extensions_panel.setCritical(Constants.SDA, false);
 						mainFrame.extensions_panel.subject_directory_attributes_panel.isCritical.setEnabled(false);
+					}
+					// Inhibit any policy
+					if (mainFrame.getInhibitAnyPolicy()) {
+						mainFrame.setCritical(Constants.IAP, true);
+						mainFrame.extensions_panel.inhibit_any_policy_panel.isCritical.setEnabled(false);
 					}
 				} else {
 					// Path length
@@ -86,6 +90,9 @@ public class BasicConstraintsPanel extends ExtensionPanel {
 					// Subject directory attributes
 					if (mainFrame.extensions_panel.subject_directory_attributes_panel != null)
 						mainFrame.extensions_panel.subject_directory_attributes_panel.isCritical.setEnabled(true);
+					// Inhibit any policy
+					if (mainFrame.extensions_panel.inhibit_any_policy_panel != null)
+						mainFrame.extensions_panel.inhibit_any_policy_panel.isCritical.setEnabled(true);
 				}				
 			}			
 		});

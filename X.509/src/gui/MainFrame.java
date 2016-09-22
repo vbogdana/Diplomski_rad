@@ -148,6 +148,8 @@ public class MainFrame extends JFrame {
 		}
 		return key_usage;
 	}
+	String getSkipCerts() { return ((extensions_panel.inhibit_any_policy_panel != null)  ? extensions_panel.inhibit_any_policy_panel.getSkipCerts() : ""); }
+	boolean getInhibitAnyPolicy() { return ((extensions_panel.inhibit_any_policy_panel != null) ? extensions_panel.inhibit_any_policy_panel.getInhibitAnyPolicy() : false); }
 	
 	// ********************************************************************************************************
 	// 												SETTERS
@@ -210,5 +212,7 @@ public class MainFrame extends JFrame {
 			for (int i = 0; i < Constants.NUM_OF_EKU; i++)
 				extensions_panel.extended_key_usage_panel.setKeyUsage(i, key_usage[i]);
 	}
+	void setSkipCerts(String v) { if (extensions_panel.inhibit_any_policy_panel != null) extensions_panel.inhibit_any_policy_panel.setSkipCerts(v); }
+	void setInhibitAnyPolicy(boolean v) { if (extensions_panel.inhibit_any_policy_panel != null) extensions_panel.inhibit_any_policy_panel.setInhibitAnyPolicy(v); }
 	
 }

@@ -6,7 +6,7 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public abstract class InfoPanel extends JPanel {
 	protected MainFrame parent;	
-	protected JLabel labels[] = new JLabel [8];
+	protected JLabel labels[] = new JLabel [Constants.NUM_OF_INFO];
 
 	InfoPanel(MainFrame parent) {
 		super();
@@ -20,8 +20,8 @@ public abstract class InfoPanel extends JPanel {
 		labels[Constants.OU] = new JLabel("Organization Unit (OU):");
 		labels[Constants.SA] = new JLabel("Signature Algorithm:");		
 		// TODO
-		if (parent.supported_version >= VersionPanel.V2)
-			labels[Constants.UI] = new JLabel("Unique identifier:");		
+		// if (parent.supported_version >= VersionPanel.V2)
+			// labels[Constants.UI] = new JLabel("Unique identifier:");		
 		
 	}
 	

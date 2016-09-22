@@ -85,7 +85,7 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 		info_panel.add(not_before);
 		info_panel.add(not_after);
 		
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < Constants.NUM_OF_INFO; i++)
 			if (parent.supported_version > Constants.V1 || i != Constants.UI) {
 				subject_panel.setValue(i, parent.getSubjectInfo(i));
 				// issuer_panel.setValue(i, parent.getIssuerInfo(i));

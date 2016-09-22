@@ -46,7 +46,6 @@ public class KeyUsagePanel extends ExtensionPanel {
 		key_usage[Constants.KEY_CERT_SIGN].addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO check nullove panela
 				if (key_usage[Constants.KEY_CERT_SIGN].isSelected()) {
 					// Key usage
 					isCritical.setSelected(true);					

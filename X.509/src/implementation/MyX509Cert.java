@@ -38,6 +38,7 @@ import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.ASN1String;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERGeneralizedTime;
+import org.bouncycastle.asn1.DERInteger;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.DERSequence;
@@ -79,6 +80,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
+@SuppressWarnings("deprecation")
 public class MyX509Cert {
 	public static final String PROVIDER = "BC";
 	
@@ -139,6 +141,7 @@ public class MyX509Cert {
 	String issuer_alternative_name = "";
 	String dateOfBirth = "", gender = "", countryOfCitizenship = "", placeOfBirth = "";
 	boolean [] extended_key_usage;
+	BigInteger inhibitAnyPolicy;
 	
 	/**************************************************************************************
 	 										STATIC
@@ -277,10 +280,11 @@ public class MyX509Cert {
 				getAlternativeName(Constants.IAN);
 				getSubjectDirectoryAttributes();
 				getExtendedKeyUsage();
+				getInhibitAnyPolicy();
 			}
 		}
 	}
-	
+
 	public void loadExtensions(PKCS10CertificationRequest csr) {
 		Attribute[] attributesAsn1Set = csr.getAttributes();
 		Extensions certificateRequestExtensions = null;
@@ -628,8 +632,6 @@ public class MyX509Cert {
         	attr = new Attribute(new ASN1ObjectIdentifier(placeOfBirthOID),new DERSet(vec));
         	attributes.add(attr);
         }        
-        // dateOfBirth that is a GeneralizedTime
-        // The correct format for this is YYYYMMDD, it will be padded to YYYYMMDD120000Z
         if (!dateOfBirth.isEmpty()) {
         	any = true;
             if (dateOfBirth.length() == 8) {
@@ -663,7 +665,6 @@ public class MyX509Cert {
 	        	if (attr.getAttrType().getId().equals(dateOfBirthOID)) {
 	        		
 	        		ASN1Set set = attr.getAttrValues();
-	        		// Come on, we'll only allow one dateOfBirth, we're not allowing such frauds with multiple birth dates
 	        		ASN1GeneralizedTime time = ASN1GeneralizedTime.getInstance(set.getObjectAt(0));
 	        		Date date = time.getDate();
 	        		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -672,17 +673,14 @@ public class MyX509Cert {
 	        	}
 	        	if (attr.getAttrType().getId().equals(placeOfBirthOID)) {
 	        		ASN1Set set = attr.getAttrValues();
-	        		// same here only one placeOfBirth
 	        		placeOfBirth = ((ASN1String)set.getObjectAt(0)).getString();       			
 	        	}
 	        	if (attr.getAttrType().getId().equals(genderOID)) {
 	        		ASN1Set set = attr.getAttrValues();
-	        		// same here only one gender
 	        		gender = ((ASN1String)set.getObjectAt(0)).getString();      			
 	        	}
 	        	if (attr.getAttrType().getId().equals(countryOfCitizenshipOID)) {
 	        		ASN1Set set = attr.getAttrValues();
-	        		// same here only one citizenship
 	        		countryOfCitizenship = ((ASN1String)set.getObjectAt(0)).getString();       			
 	        	}
 	        }
@@ -717,6 +715,33 @@ public class MyX509Cert {
 			
 			ExtendedKeyUsage eku = new ExtendedKeyUsage(ids);
 			extensions[Constants.EKU] = new Extension(asn1[Constants.EKU], critical, new DEROctetString(eku));
+		}		
+	}
+
+	public void generateInhibitAnyPolicy(boolean critical, boolean inhibitAnyPolicy, String skipCerts) throws IOException {
+		if (!inhibitAnyPolicy)
+			 return;
+		
+		long value = 0;
+		if (!skipCerts.isEmpty())
+			value = Integer.parseInt(skipCerts);
+		DERInteger i = new DERInteger(value);
+		DEROctetString s = new DEROctetString(i);
+		extensions[Constants.IAP] = new Extension(asn1[Constants.IAP], critical, s);
+			
+	}
+	
+	public void getInhibitAnyPolicy() throws IOException {
+		boolean critical = isCritical(certificate, asn1[Constants.IAP].getId());
+		byte[] extvalue = getCoreExtValue(certificate, asn1[Constants.IAP]);
+		if (extvalue != null) {
+			DEROctetString s = new DEROctetString(extvalue);
+			byte [] value = new byte [extvalue[1]];
+			for (int i = 0; i < extvalue[1]; i++)
+				value[i] = extvalue[2 + i];
+			DERInteger i = new DERInteger(value);
+			inhibitAnyPolicy = i.getValue();
+			extensions[Constants.IAP] = new Extension(asn1[Constants.IAP], critical, s);
 		}		
 	}
 }

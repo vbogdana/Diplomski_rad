@@ -21,19 +21,20 @@ public class X509 {
 										  true, 		// Subject Key ID (goes together with authority key id)
 										  true, 		// Key Usage
 										  true, 		// Certificate policies 
-										  true, 		// Policy mappings (not implemented)
+										  false, 		// Policy mappings (not implemented)
 										  true,  		// Subject Alternative Names
 										  true, 		// Issuer Alternative Names 
 										  true, 		// Subject Directory Attributes 
 										  true, 		// Basic constraints
-										  true, 		// Name constraints	(not implemented)
-										  true, 		// Policy constraints (not implemented)
+										  false, 		// Name constraints	(not implemented)
+										  false, 		// Policy constraints (not implemented)
 										  true, 		// Extended key usage
-										  true, 		// CRL Distribution Points (not implemented)
+										  false, 		// CRL Distribution Points (not implemented)
 										  true, 		// Inhibit anyPolicy 
-										  true 			// Freshest CRL (a.k.a. Delta CRL Distribution Point) (not implemented)
+										  false 		// Freshest CRL (a.k.a. Delta CRL Distribution Point) (not implemented)
 										};
 			// class MyCode is implemented by students
+			// it should be in the package "implementation"
 			// it should extend class CodeVX for jar file (X depends of a x509 supported version, it can be 1 or 3)
 			// class CodeVX has a field "access" which represents an access point to the GUI using getters/setters
 			@SuppressWarnings("unused")

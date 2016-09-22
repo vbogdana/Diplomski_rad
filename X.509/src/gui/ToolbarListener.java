@@ -215,7 +215,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			    
 			    if (code.importCertificate(file, name)) {
 			    	mainFrame.addKeypair(name);
-			    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully imported!");
+			    	JOptionPane.showMessageDialog(mainFrame, "Certificate successfully imported!");
 			    }
 			    			    
 		    } catch (DataException e) {
@@ -236,8 +236,8 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 		 
 		if (userSelection == JFileChooser.APPROVE_OPTION) {
 		    File fileToSave = fileChooser.getSelectedFile();
-		    code.exportCertificate(fileToSave, mainFrame.toolbar_panel.manage_panel.encoding);
-		    
+		    if (code.exportCertificate(fileToSave, mainFrame.toolbar_panel.manage_panel.encoding))
+		    	JOptionPane.showMessageDialog(mainFrame, "Certificate successfully exported!");
 		}
 		
 	}

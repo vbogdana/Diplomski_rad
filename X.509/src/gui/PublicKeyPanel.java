@@ -30,7 +30,6 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	private MainFrame parent;
 	private int algorithm = -1;
 	boolean enabled[];			// algorithm configuration
-	// TODO
 	
 	// KEY GENERATOR ALGORITHMS
 	private final String algorithms[] = { "DSA", "RSA", "GOST", "EC" };
@@ -38,7 +37,6 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	private JRadioButton alg_buttons[] = new JRadioButton [NUM_OF_ALGORITHMS];
 		
 	// ALGORITHM PARAMETERS
-	// TODO
 	private final String texts[] = { "Key length:", "Key length:", "Type:", "Set:", "Curve:" };	
 	private String dsa_lengths[] = new String [NUM_OF_DSA_LENGTHS];
 	private String rsa_lengths[] = { "512", "1024", "2048", "4096" };

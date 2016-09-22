@@ -24,6 +24,7 @@ public class ExtensionsPanel extends JPanel {
 	SubjectDirectoryAttributesPanel subject_directory_attributes_panel;
 	BasicConstraintsPanel basic_constraints_panel;
 	ExtendedKeyUsagePanel extended_key_usage_panel;
+	InhibitAnyPolicyPanel inhibit_any_policy_panel;
 	
 	boolean [] isCritical = new boolean [Constants.NUM_OF_EXTENSIONS];
 	
@@ -50,13 +51,14 @@ public class ExtensionsPanel extends JPanel {
         	extension_panels[Constants.BC] = (basic_constraints_panel = new BasicConstraintsPanel(parent));
         if (extensions_conf[Constants.EKU])
         	extension_panels[Constants.EKU] = (extended_key_usage_panel = new ExtendedKeyUsagePanel(parent));
+        if (extensions_conf[Constants.IAP])
+        	extension_panels[Constants.IAP] = (inhibit_any_policy_panel = new InhibitAnyPolicyPanel(parent));
         // TODO
         /*
         generatePolicyMappingsPanel();
         generateNameConstraintsPanel();
         generatePolicyConstraintsPanel();
         generateCRLDistributionPointsPanel();
-        generateInhibitAnyPolicyPanel();
         generateFreshestCRLPanel();
         */
         int Y = 10;
@@ -103,9 +105,9 @@ public class ExtensionsPanel extends JPanel {
 	}
 	
 	void checkData() throws DataException {
-		// TODO
 		if (basic_constraints_panel != null) basic_constraints_panel.checkData();
 		if (certificate_policies_panel != null) certificate_policies_panel.checkData();
+		if (inhibit_any_policy_panel != null) inhibit_any_policy_panel.checkData();
 	}
 	
 	// ********************************************************************************************************

@@ -13,7 +13,7 @@ import javax.swing.border.EtchedBorder;
 @SuppressWarnings("serial")
 public class IssuerPanel extends InfoPanel {
 	
-	private JLabel values[] = new JLabel [8];
+	private JLabel values[] = new JLabel [Constants.NUM_OF_INFO];
 
 	IssuerPanel(MainFrame parent) {
 		super(parent);
@@ -25,7 +25,7 @@ public class IssuerPanel extends InfoPanel {
 		Border b = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
         setBorder(BorderFactory.createTitledBorder(b, "Issued by"));
 		
-		for (int i = 0; i < 8; i++) {	
+		for (int i = 0; i < Constants.NUM_OF_INFO; i++) {	
 			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
@@ -49,14 +49,14 @@ public class IssuerPanel extends InfoPanel {
 		}
 		
 		// because at the start selected version is 1
-		if (parent.supported_version >= Constants.V2) {
+		/*if (parent.supported_version >= Constants.V2) {
 			labels[Constants.UI].setEnabled(false);
 			values[Constants.UI].setEnabled(false);
-		}
+		}*/
 	}
 	
 	void resetPanel() {
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < Constants.NUM_OF_INFO; i++) {
 			if ((parent.supported_version < Constants.V2) && (i == Constants.UI))
 				continue;
 			
@@ -66,18 +66,9 @@ public class IssuerPanel extends InfoPanel {
 	
 	void enablePanel(boolean flag) {
 		// TODO check zbog v2
-		/*
-		for (int i = 0; i < 8; i++) {
-			if ((parent.version_panel.getSupportedVersion() < Constants.V2) && (i == Constants.UI))
-				continue;
-			
-			labels[i].setEnabled(flag);
-			values[i].setEnabled(flag);
-		}
-		*/
 		if (parent.supported_version < Constants.V2)
 			return;
-		
+		/*
 		if (flag) {
 			if (parent.version_panel.getVersion() < Constants.V2)
 				 enableV2(false);
@@ -89,14 +80,17 @@ public class IssuerPanel extends InfoPanel {
 			else
 				labels[Constants.UI].setEnabled(true);
 		}
+		*/
 	}
 	
 	void enableV2(boolean flag) {
+		/*
 		labels[Constants.UI].setEnabled(flag);
 		values[Constants.UI].setEnabled(flag);
 		
 		if (!flag)
 			values[Constants.UI].setText("");
+			*/
 	}
 	
 	// ********************************************************************************************************
