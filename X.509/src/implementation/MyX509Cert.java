@@ -242,6 +242,18 @@ public class MyX509Cert {
 		
 	}
 	
+	public static Extension generateIssuerAlternativeName(Collection<List<?>> names) throws IOException {
+		if (names != null && !names.isEmpty()) {
+			GeneralName [] general_names = new GeneralName[names.size()];
+			Object[] array = names.toArray();
+			for (int i = 0; i < names.size(); i++)
+				general_names[i] = new GeneralName(GeneralName.dNSName, ((List<?>) array[i]).get(1).toString());
+			GeneralNames gn = new GeneralNames(general_names);
+			return new Extension(asn1[Constants.IAN], false, new DEROctetString(gn));			
+		}
+		return null;
+	}
+	
 	/*****************************************************************************************************
 	 										NON STATICS
 	 ****************************************************************************************************/
@@ -539,7 +551,7 @@ public class MyX509Cert {
 	}
 
 	public void generateCertificatePolicies(boolean critical, String cpsUri) throws IOException {	
-		if (cpsUri !=  null && !cpsUri.equals("")) {
+		if (cpsUri !=  null) {
 			PolicyQualifierInfo qualifier = new PolicyQualifierInfo(cpsUri);
 			PolicyInformation [] policies = new PolicyInformation [1];
 			policies[0] = new PolicyInformation(new ASN1ObjectIdentifier(anyPolicy), new DERSequence(qualifier));

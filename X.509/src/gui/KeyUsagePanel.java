@@ -74,6 +74,11 @@ public class KeyUsagePanel extends ExtensionPanel {
 						mainFrame.extensions_panel.setCritical(Constants.SDA, false);
 						mainFrame.extensions_panel.subject_directory_attributes_panel.isCritical.setEnabled(false);
 					}
+					// Inhibit any policy
+					if (mainFrame.getInhibitAnyPolicy()) {
+						mainFrame.setCritical(Constants.IAP, true);
+						mainFrame.extensions_panel.inhibit_any_policy_panel.isCritical.setEnabled(false);
+					}
 				} else {
 					// Key usage
 					uncheckIsCritical();

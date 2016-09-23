@@ -84,9 +84,7 @@ public class CertificatePoliciesPanel extends ExtensionPanel {
 	
 	void checkData() throws DataException {
 		if (anyPolicy.isSelected()) {
-			if (cpsUri.getText() == null || cpsUri.getText().equals("")) 
-				throw new DataException("CPS URI is required.");
-			else  {
+			if (cpsUri.getText() != null && !cpsUri.getText().equals(""))  {
 				Pattern p = Pattern.compile("(@)?(href=')?(HREF=')?(HREF=\")?(href=\")?(http://)?[a-zA-Z_0-9\\-]+(\\.\\w[a-zA-Z_0-9\\-]+)+(/[#&\\n\\-=?\\+\\%/\\.\\w]+)?");  
 			    Matcher m = p.matcher(cpsUri.getText()); 
 			    if (!m.matches())

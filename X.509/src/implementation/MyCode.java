@@ -22,6 +22,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.text.ParseException;
@@ -35,6 +36,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import sun.misc.BASE64Encoder;
@@ -242,6 +244,8 @@ public class MyCode extends CodeV3 {
 					byte [] keyID =  MyX509Cert.extractSubjectKeyIdentifier(cert_issuer);
 					if (keyID != null)
 						current_cert.extensions[Constants.AKID] = MyX509Cert.generateAuthorityKeyIdentifier(false, keyID, cert_issuer.getSubjectX500Principal().getName(), cert_issuer.getSerialNumber());
+					if (cert_issuer.getSubjectAlternativeNames() != null)
+						current_cert.extensions[Constants.IAN] = MyX509Cert.generateIssuerAlternativeName(cert_issuer.getSubjectAlternativeNames());
 				}
 			}
 					
@@ -249,7 +253,7 @@ public class MyCode extends CodeV3 {
 			//current_cert.subPubKeyInfo = current_csr.getSubjectPublicKeyInfo();
 			current_cert.subject = current_csr_info.getSubject().toString();			
 			current_cert.subPubKeyInfo = current_csr_info.getSubjectPublicKeyInfo();
-			current_cert.issuer = cert_issuer.getSubjectX500Principal().getName();
+			current_cert.issuer = new JcaX509CertificateHolder(cert_issuer).getSubject().toString();
 			current_cert.signature_algorithm = algorithm;
 						
 			current_cert.generateCertificate(entry_issuer.getPrivateKey());
@@ -353,6 +357,24 @@ public class MyCode extends CodeV3 {
 		}
 		return "";
 	}
+	
+	@Override
+	public int getRSAKeyLength(String keypair_name) {
+		int length = 0;
+		try {
+			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
+			PrivateKeyEntry cert_issuer_key = MyKeyStore.getKey(keypair_name, MyKeyStore.localPassword);
+			X509Certificate cert_issuer = (X509Certificate) cert_issuer_key.getCertificate();
+			
+			if (cert_issuer.getPublicKey().getAlgorithm().equals("RSA"))
+				length = ((RSAPublicKey)cert_issuer.getPublicKey()).getModulus().bitLength();
+			return length;
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
+			GuiInterface.reportError(e);
+		}
+		return length;
+	}
+
 	
 	@Override
 	public List<String> getIssuers(String keypair_name) {

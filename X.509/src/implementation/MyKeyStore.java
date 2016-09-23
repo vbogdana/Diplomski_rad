@@ -32,7 +32,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class MyKeyStore {
 	
 	public static final String PKCS = "PKCS12";
-	public static final String localKeyStore = "localKeyStore.jks";
+	public static final String localKeyStore = "localKeyStore.p12";
 	public static final String localPassword = "localKeyStorePassword";
 	
 	public static KeyStore ks;

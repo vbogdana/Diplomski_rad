@@ -15,7 +15,7 @@ public class AlternativeNamePanel extends ExtensionPanel {
 		
 		panel.setBounds(10, 50, 490, 50);
 		
-		label = new JLabel(title + ":");
+		label = new JLabel(title + "s:");
 		label.setBounds(10, 10, 190, 25);
 		panel.add(label);
 		

@@ -18,10 +18,12 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
+import code.DataException;
+
 @SuppressWarnings({ "serial", "unchecked", "rawtypes" })
 public class PublicKeyPanel extends JPanel implements ActionListener {
 	public static final int NUM_OF_ALGORITHMS = 4;
-	public static final int DSA_MIN = 512, DSA_STEP = 64, DSA_MAX = 2048, NUM_OF_DSA_LENGTHS = ((DSA_MAX - DSA_MIN) / DSA_STEP + 1);
+	public static final int DSA_MIN = 512, DSA_STEP = 64, DSA_MAX = 1024, NUM_OF_DSA_LENGTHS = ((DSA_MAX - DSA_MIN) / DSA_STEP + 1);
 	public static final int NUM_OF_SETS = 3;
 	public static final int DSA = 0, RSA = 1, GOST = 2, EC = 3;
 	public static final int EC_CURVE_PARAMETER = 4;
@@ -38,7 +40,7 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 		
 	// ALGORITHM PARAMETERS
 	private final String texts[] = { "Key length:", "Key length:", "Type:", "Set:", "Curve:" };	
-	private String dsa_lengths[] = new String [NUM_OF_DSA_LENGTHS];
+	private String dsa_lengths[] = new String [NUM_OF_DSA_LENGTHS + 1];
 	private String rsa_lengths[] = { "512", "1024", "2048", "4096" };
 	private String gost_types[] = { "GostR3410-2001-CryptoPro-A", "GostR3410-2001-CryptoPro-B", "GostR3410-2001-CryptoPro-C", "GostR3410-2001-CryptoPro-XchA", "GostR3410-2001-CryptoPro-XchB" };
 	private String ec_sets[] = { "X9.62", "SEC", "NIST" };
@@ -76,16 +78,19 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 	
 	
 	private void initPanelData() {
-		for (int i = 0, j = DSA_MIN; j <= DSA_MAX; j += DSA_STEP, i++)
+		int i = 0;
+		for (int j = DSA_MIN; j <= DSA_MAX; j += DSA_STEP, i++)
 			dsa_lengths[i] = String.valueOf(j);
+		dsa_lengths[i] = String.valueOf(2048);
 		
-		for (int i = 0; i < NUM_OF_SETS; i++) {
+		for (i = 0; i < NUM_OF_SETS; i++) {
 			model[i] = new DefaultComboBoxModel<> ();
 			for (int j = 0; j < curves_by_set[i].length; j++)
 				model[i].addElement(curves_by_set[i][j]);
 		}
-
-		for (int i = 0, row = 0; i < NUM_OF_ALGORITHMS; i++) {
+		
+		i = 0;
+		for (int row = 0; i < NUM_OF_ALGORITHMS; i++) {
 			GridBagConstraints c = new GridBagConstraints();
 			
 			if (!enabled[i])
@@ -300,6 +305,12 @@ public class PublicKeyPanel extends JPanel implements ActionListener {
 				break;
 			}
 		parent.subject_panel.setValue(Constants.SA, getSignatureAlgorithm());
+	}
+
+	void checkData() throws DataException {
+		if (algorithm == Constants.RSA && parameters[algorithm].getSelectedIndex() == 0 && (hash_algorithms[algorithm].getSelectedIndex() == 5 || hash_algorithms[algorithm].getSelectedIndex() == 6))
+			throw new DataException("SHA384 and SHA512 algorithms demand at least 1024 bit keys.");
+		
 	}
 	
 

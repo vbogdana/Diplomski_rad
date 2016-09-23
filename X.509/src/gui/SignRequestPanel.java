@@ -31,6 +31,9 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 	DefaultComboBoxModel<String> model[] = new DefaultComboBoxModel [Constants.NUM_OF_ALGORITHMS];
 	JButton sign_button;
 	
+	String issuer_algorithm = "";
+	private int key_length;
+	
 	SignRequestPanel(MainFrame parent, CodeInterface code) {
 		this.parent = parent;
 		this.code = code;
@@ -115,7 +118,12 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 		sign_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-
+				if (issuer_algorithm.equals("RSA"))
+					if (key_length == 512 && (digest_algorithms.getSelectedIndex() == 5 || digest_algorithms.getSelectedIndex() == 6)) {
+						GuiInterface.reportError("SHA384 and SHA512 algorithms demand at least 1024 bit keys.");
+						return;
+					}						
+				
 				if (code.signCertificate((String) authorities.getSelectedItem(), (String) digest_algorithms.getSelectedItem()))
 					dispose();
 			}			
@@ -126,9 +134,7 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 		authorities_panel.add(label);
 		authorities_panel.add(authorities);;
 		authorities_panel.add(digest_algorithms);
-		authorities_panel.add(sign_button);
-		
-		
+		authorities_panel.add(sign_button);		
 	}
 	
 	private void populateComboboxes() {
@@ -161,10 +167,13 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 		issuer_panel.setInfo(issuer);
 			
 		digest_algorithms.setEnabled(true);
-		String issuer_algorithm = code.getIssuerPublicKeyAlgorithm(keypair_name);
+		issuer_algorithm = code.getIssuerPublicKeyAlgorithm(keypair_name);
 		switch (issuer_algorithm) {
 		case "DSA": digest_algorithms.setModel(model[Constants.DSA]); break;
-		case "RSA": digest_algorithms.setModel(model[Constants.RSA]); break;
+		case "RSA":
+			key_length = code.getRSAKeyLength(keypair_name);
+			digest_algorithms.setModel(model[Constants.RSA]); 
+			break;
 		case "EC": digest_algorithms.setModel(model[Constants.EC]); break;
 		}
 		

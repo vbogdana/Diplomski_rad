@@ -4,7 +4,7 @@ import implementation.MyCode;
 import gui.GuiInterface;
 
 // this class should be given to the students
-// along with the jar GUI file for the selected version
+// inside the jar GUI file for the selected version
 // it is up to the teacher to edit this file depending on the desired GUI
 public class X509 {
 

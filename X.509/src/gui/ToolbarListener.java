@@ -62,10 +62,13 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 					mainFrame.enablePanel(false);
 					mainFrame.toolbar_panel.keystore_panel.enablePanel(true);
 					mainFrame.enableExportCertificateButton(signed > 0);
-					if (signed == 2)
+					if (signed == 2) {
+						mainFrame.toolbar_panel.keystore_panel.export_keypair.setEnabled(false);
 						mainFrame.enableSignButton(false);
-					else
+					} else {						
 						mainFrame.enableSignButton(true);
+						mainFrame.toolbar_panel.keystore_panel.export_keypair.setEnabled(true);
+					}
 				} else {
 					// reset
 					mainFrame.toolbar_panel.resetPanel();
@@ -94,6 +97,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			((SubjectPanel) mainFrame.subject_panel).checkData();
 			mainFrame.serial_number_panel.checkData();
 			mainFrame.validity_panel.checkData();
+			mainFrame.public_key_panel.checkData();
 			if (mainFrame.supported_version >= Constants.V3 && mainFrame.version_panel.getVersion() > Constants.V2)
 				mainFrame.extensions_panel.checkData();
 			

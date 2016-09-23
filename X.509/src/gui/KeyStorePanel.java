@@ -17,7 +17,7 @@ public class KeyStorePanel extends JPanel {
 	private DefaultListModel<String> keystore_model = new DefaultListModel<>();
 	private JList<String> keystore_list = new JList<>(keystore_model);
 	private JScrollPane scroll_pane = new JScrollPane(keystore_list);
-	private JButton reset = new JButton ("Reset Local KeyStore"),
+	JButton reset = new JButton ("Reset Local KeyStore"),
 			new_keypair = new JButton ("New Keypair"),
 			save_keypair = new JButton("Save"),
 			remove_keypair = new JButton("Remove Keypair"),

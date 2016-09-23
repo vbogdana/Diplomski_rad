@@ -17,6 +17,7 @@ public interface CodeInterface {
 	public abstract boolean exportCertificate(File file, int encoding);
 	public abstract String getIssuer(String keypair_name);
 	public abstract String getIssuerPublicKeyAlgorithm(String keypair_name);
+	public abstract int getRSAKeyLength(String keypair_name); // returns the length of a RSA public key in bits, if RSA algorithm is supported
 	public abstract List<String> getIssuers(String keypair_name);
 	public abstract boolean generateCSR(String keypair_name);
-}
+	}
