@@ -1,7 +1,7 @@
 package implementation;
 
 import gui.Constants;
-import gui.GuiInterface;
+import gui.GuiInterfaceV1;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -56,25 +56,25 @@ public class MyCode extends CodeV3 {
 	}
 	
 	@Override
-	public Enumeration<String> loadKeystore() {
+	public Enumeration<String> loadLocalKeystore() {
 		Enumeration<String> certificates = null;
 		try {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			certificates = MyKeyStore.ks.aliases();
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 		}
 		
 		return certificates;
 	}
 	
 	@Override
-	public void resetLocalKeyStore() {
+	public void resetLocalKeystore() {
 		MyKeyStore.delete(MyKeyStore.localKeyStore);
 	}
 	
 	@Override
-	public int loadKey(String keypair_name) {
+	public int loadKeypair(String keypair_name) {
 		boolean signed = false;
 		try {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
@@ -90,7 +90,7 @@ public class MyCode extends CodeV3 {
 			current_alias = keypair_name;
 			signed = loadCertificateToGui();
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException | ParseException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 			return -1;
 		}
 		if (current_keyentry instanceof TrustedCertificateEntry)
@@ -99,11 +99,11 @@ public class MyCode extends CodeV3 {
 	}
 
 	@Override
-	public boolean saveKey(String keypair_name) {		
+	public boolean saveKeypair(String keypair_name) {		
 		try {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			if (MyKeyStore.ks.containsAlias(keypair_name)) {
-				GuiInterface.reportError("Keystore already contains that alias.");
+				GuiInterfaceV1.reportError("Keystore already contains that alias.");
 		    	return false;
 			}
 			
@@ -154,20 +154,20 @@ public class MyCode extends CodeV3 {
 		} catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException
 				| NoSuchProviderException | OperatorCreationException | CertificateException 
 				| KeyStoreException | IOException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 			return false;
 		}		
 		return true;
 	}
 	
 	@Override
-	public boolean removeKeypairFromKeystore(String keypair_name) {
+	public boolean removeKeypair(String keypair_name) {
 		try {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			MyKeyStore.removeEntry(keypair_name);
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);			
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 			return false;
 		}
 		return true;
@@ -187,7 +187,7 @@ public class MyCode extends CodeV3 {
 		    }
 		    
 		    if (i != 1) {
-		    	GuiInterface.reportError("File corrupted");
+		    	GuiInterfaceV1.reportError("File corrupted");
 		    	return false;
 		    }	    	
 		    
@@ -195,7 +195,7 @@ public class MyCode extends CodeV3 {
 			
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			if (MyKeyStore.ks.containsAlias(keypair_name)) {
-				GuiInterface.reportError("Keystore already contains that alias.");
+				GuiInterfaceV1.reportError("Keystore already contains that alias.");
 		    	return false;
 			}
 			MyKeyStore.putKey(keypair_name, imported.getPrivateKey(), imported.getCertificate(), MyKeyStore.localPassword);
@@ -204,7 +204,7 @@ public class MyCode extends CodeV3 {
 				| IOException | UnrecoverableEntryException | InvalidKeyException 
 				| InvalidKeySpecException | NoSuchPaddingException | IllegalBlockSizeException 
 				| BadPaddingException | InvalidAlgorithmParameterException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 			return false;
 		}
 				
@@ -215,7 +215,7 @@ public class MyCode extends CodeV3 {
 	public boolean exportKeypair(String keypair_name, String file, String password) {
 		try {	
 			if (current_keyentry instanceof TrustedCertificateEntry) {
-				GuiInterface.reportError("Can not export a trusted certificate as a keypair.");
+				GuiInterfaceV1.reportError("Can not export a trusted certificate as a keypair.");
 				return false;
 			}				
 			MyKeyStore.load(file + ".p12", null);
@@ -224,7 +224,7 @@ public class MyCode extends CodeV3 {
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException 
 				| IOException | InvalidKeyException | InvalidKeySpecException 
 				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidParameterSpecException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 			return false;
 		}
 		return true;
@@ -270,7 +270,7 @@ public class MyCode extends CodeV3 {
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException 
 				| UnrecoverableEntryException | OperatorCreationException | IOException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 			return false;
 		}
 		return true;
@@ -283,7 +283,7 @@ public class MyCode extends CodeV3 {
 		try {
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			if (MyKeyStore.ks.containsAlias(keypair_name)) {
-				GuiInterface.reportError("Keystore already contains that alias.");
+				GuiInterfaceV1.reportError("Keystore already contains that alias.");
 		    	return false;
 			}
 			
@@ -294,7 +294,7 @@ public class MyCode extends CodeV3 {
 		    MyKeyStore.putCert(keypair_name, cert);
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 		} catch (CertificateException | KeyStoreException | NoSuchAlgorithmException | IOException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 			return false;
 		}
 		return true;
@@ -321,7 +321,7 @@ public class MyCode extends CodeV3 {
 		    fos.write(c);
 		    fos.close();
 		} catch (IOException | CertificateEncodingException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 			return false;
 		}
 		return true;
@@ -339,7 +339,7 @@ public class MyCode extends CodeV3 {
 			issuer += ",SA=" + cert_issuer.getSigAlgName();
 			return issuer;
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 		}
 		return "";
 	}
@@ -353,7 +353,7 @@ public class MyCode extends CodeV3 {
 			String algorithm = cert_issuer.getPublicKey().getAlgorithm();
 			return algorithm;
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 		}
 		return "";
 	}
@@ -370,7 +370,7 @@ public class MyCode extends CodeV3 {
 				length = ((RSAPublicKey)cert_issuer.getPublicKey()).getModulus().bitLength();
 			return length;
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 		}
 		return length;
 	}
@@ -399,7 +399,7 @@ public class MyCode extends CodeV3 {
 				}
 			}			
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableEntryException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 		}
 		return valid;
 	}

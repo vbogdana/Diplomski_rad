@@ -1,7 +1,7 @@
 package code;
 
 import implementation.MyCode;
-import gui.GuiInterface;
+import gui.GuiInterfaceV1;
 
 // this class should be given to the students
 // inside the jar GUI file for the selected version
@@ -41,7 +41,7 @@ public class X509 {
 			CodeInterface my_code = new MyCode(algorithm_conf, extensions_conf);
 		} catch (GuiException e) {
 			// Handles frame construction exceptions
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 		}
 	}
 

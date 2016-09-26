@@ -56,7 +56,7 @@ public class MainFrame extends JFrame {
 		if (supported_version >= Constants.V3)
 			getContentPane().add(extensions_panel);
 		
-		loadKeystore(code.loadKeystore());
+		loadKeystore(code.loadLocalKeystore());
 	
 		setVisible(true);
 	}

@@ -160,7 +160,7 @@ public class SubjectDirectoryAttributesPanel extends ExtensionPanel {
 			try {
 				dateModel.setValue(sdf.parse(v));
 			} catch (ParseException e) {
-				GuiInterface.reportError("Invalid date of birth format.");
+				GuiInterfaceV1.reportError("Invalid date of birth format.");
 			}
 		}
 	}

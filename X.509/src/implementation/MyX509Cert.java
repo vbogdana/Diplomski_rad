@@ -1,7 +1,7 @@
 package implementation;
 
 import gui.Constants;
-import gui.GuiInterface;
+import gui.GuiInterfaceV1;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -653,7 +653,7 @@ public class MyX509Cert {
                 attr = new Attribute(new ASN1ObjectIdentifier(dateOfBirthOID),new DERSet(vec));
                 attributes.add(attr);
             } else {
-                GuiInterface.reportError("Wrong length of data for 'dateOfBirth', should be of format YYYYMMDD, skipping...");
+                GuiInterfaceV1.reportError("Wrong length of data for 'dateOfBirth', should be of format YYYYMMDD, skipping...");
             }
         }
         

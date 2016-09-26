@@ -56,7 +56,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 					return;
 				// reset
 				mainFrame.resetPanel();
-				int signed = code.loadKey(keypair_name); 
+				int signed = code.loadKeypair(keypair_name); 
 				if (signed != -1) {
 					// enable
 					mainFrame.enablePanel(false);
@@ -72,7 +72,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 				} else {
 					// reset
 					mainFrame.toolbar_panel.resetPanel();
-					GuiInterface.reportError("Error while loading keypair from local KeyStore.");
+					GuiInterfaceV1.reportError("Error while loading keypair from local KeyStore.");
 				}
 			}
 			
@@ -80,7 +80,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	}
 	
 	private void resetLocalKeystorePerformed() {	
-		code.resetLocalKeyStore();
+		code.resetLocalKeystore();
 		mainFrame.loadKeystore(null);
 	}
 	
@@ -109,20 +109,20 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			if (keypair_name.isEmpty())
 				throw new DataException("Invalid name.");
 			
-			if (code.saveKey(keypair_name)) {
+			if (code.saveKeypair(keypair_name)) {
 				mainFrame.addKeypair(keypair_name);
 				// reset
 				mainFrame.toolbar_panel.resetPanel();
 				mainFrame.resetPanel();
 			}
 		} catch (DataException e) {
-			GuiInterface.reportError(e);
+			GuiInterfaceV1.reportError(e);
 		}
 	}
 	
 	private void removeKeypairPerformed() {
 		String keypair_name = mainFrame.toolbar_panel.keystore_panel.getSelectedValue();
-	    if (code.removeKeypairFromKeystore(keypair_name)) {
+	    if (code.removeKeypair(keypair_name)) {
 	    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully removed!");
 	    	mainFrame.toolbar_panel.keystore_panel.removeKeypair(keypair_name);
 	    	// reset
@@ -158,7 +158,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully imported!");
 			    }			    
 		    } catch (DataException e) {
-		    	GuiInterface.reportError(e);
+		    	GuiInterfaceV1.reportError(e);
 		    }
 		}
 	}
@@ -186,7 +186,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			    	JOptionPane.showMessageDialog(mainFrame, "Keypair successfully exported!");
 			    }
 		    } catch (DataException e) {
-		    	GuiInterface.reportError(e);
+		    	GuiInterfaceV1.reportError(e);
 		    }
 		}	
 	}
@@ -195,7 +195,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 		if (code.generateCSR(mainFrame.toolbar_panel.keystore_panel.getSelectedValue()))
 			new SignRequestPanel(mainFrame, code);
 		else
-			GuiInterface.reportError("Error while generating certificate signing request.");
+			GuiInterfaceV1.reportError("Error while generating certificate signing request.");
 		mainFrame.toolbar_panel.resetPanel();
 	}
 	
@@ -223,7 +223,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			    }
 			    			    
 		    } catch (DataException e) {
-		    	GuiInterface.reportError(e);
+		    	GuiInterfaceV1.reportError(e);
 		    }
 		}
 				

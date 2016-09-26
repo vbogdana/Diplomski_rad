@@ -120,7 +120,7 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 			public void actionPerformed(ActionEvent arg0) {
 				if (issuer_algorithm.equals("RSA"))
 					if (key_length == 512 && (digest_algorithms.getSelectedIndex() == 5 || digest_algorithms.getSelectedIndex() == 6)) {
-						GuiInterface.reportError("SHA384 and SHA512 algorithms demand at least 1024 bit keys.");
+						GuiInterfaceV1.reportError("SHA384 and SHA512 algorithms demand at least 1024 bit keys.");
 						return;
 					}						
 				

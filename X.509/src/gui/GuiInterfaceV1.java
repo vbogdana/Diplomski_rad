@@ -7,12 +7,12 @@ import javax.swing.JOptionPane;
 import code.CodeInterface;
 import code.GuiException;
 
-public abstract class GuiInterface {
+public abstract class GuiInterfaceV1 {
 	
 	protected MainFrame window;
 	protected boolean algorithm_conf[];
 	
-	protected GuiInterface(boolean[] algorithm_conf, int supported_version, boolean[] extensions_conf, CodeInterface code) throws GuiException {
+	protected GuiInterfaceV1(boolean[] algorithm_conf, int supported_version, boolean[] extensions_conf, CodeInterface code) throws GuiException {
 		this.algorithm_conf = algorithm_conf;
 		int algorithm = -1;
 		for (int i = 0; i < Constants.NUM_OF_ALGORITHMS; i++)

@@ -3,7 +3,7 @@ package gui;
 import code.CodeInterface;
 import code.GuiException;
 
-public abstract class GuiInterfaceV2 extends GuiInterface {
+public abstract class GuiInterfaceV2 extends GuiInterfaceV1 {
 
 	public GuiInterfaceV2(boolean[] algorithm_conf, int supported_version, boolean[] extensions_conf, CodeInterface code) throws GuiException {
 		super(algorithm_conf, supported_version, extensions_conf, code);
