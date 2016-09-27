@@ -19,7 +19,7 @@ import javax.swing.border.EtchedBorder;
 import code.CodeInterface;
 
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
-public class SignRequestPanel extends JDialog  implements ActionListener {
+public class SignRequestDialog extends JDialog  implements ActionListener {
 	MainFrame parent;
 	CodeInterface code;
 	
@@ -34,7 +34,7 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 	String issuer_algorithm = "";
 	private int key_length;
 	
-	SignRequestPanel(MainFrame parent, CodeInterface code) {
+	SignRequestDialog(MainFrame parent, CodeInterface code) {
 		this.parent = parent;
 		this.code = code;
 		
@@ -173,6 +173,8 @@ public class SignRequestPanel extends JDialog  implements ActionListener {
 		case "RSA":
 			key_length = code.getRSAKeyLength(keypair_name);
 			digest_algorithms.setModel(model[Constants.RSA]); 
+			break;
+		case "GOST": //TODO
 			break;
 		case "EC": digest_algorithms.setModel(model[Constants.EC]); break;
 		}

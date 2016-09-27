@@ -7,8 +7,8 @@ public abstract class CodeV1 implements CodeInterface {
 
 	protected GuiV1 access;
 	
-	public CodeV1(boolean[] conf) throws GuiException {
-		this.access = new GuiV1(conf, this);
+	public CodeV1(boolean[] algorithm_conf) throws GuiException {
+		this.access = new GuiV1(algorithm_conf, this);
 	}
 
 }

@@ -35,7 +35,6 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 			case "Import certificate": importCertificatePerformed(); break;
 			case "Export certificate": exportCertificatePerformed(); break;
 		}
-
 	}
 
 	@Override
@@ -193,7 +192,7 @@ public class ToolbarListener implements ActionListener, ListSelectionListener {
 	
 	private void signCertificatePerformed() {
 		if (code.generateCSR(mainFrame.toolbar_panel.keystore_panel.getSelectedValue()))
-			new SignRequestPanel(mainFrame, code);
+			new SignRequestDialog(mainFrame, code);
 		else
 			GuiInterfaceV1.reportError("Error while generating certificate signing request.");
 		mainFrame.toolbar_panel.resetPanel();

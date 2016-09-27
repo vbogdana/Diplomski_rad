@@ -34,26 +34,24 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import sun.misc.BASE64Encoder;
 import sun.security.provider.X509Factory;
-
 import code.GuiException;
-import x509.v3.CodeV3;
+import x509.v1.CodeV1;
 
-public class MyCode extends CodeV3 {
+public class MyCodeV1 extends CodeV1 {
 	private String current_alias;
 	private MyX509Cert current_cert;
 	private Entry current_keyentry;
 	// private PKCS10CertificationRequest current_csr;	
 	private CertificationRequestInfo current_csr_info;
 	
-	public MyCode(boolean[] algorithm_conf, boolean[] extensions_conf) throws GuiException {
-		super(algorithm_conf, extensions_conf);		
+	public MyCodeV1(boolean[] algorithm_conf, boolean[] extensions_conf) throws GuiException {
+		super(algorithm_conf);		
 	}
 	
 	@Override
@@ -120,34 +118,7 @@ public class MyCode extends CodeV3 {
 			cert.subject = access.getSubject();
 			cert.issuer = cert.subject;
 			cert.generateKeypair();
-			if (cert.version > Constants.V1) {
-				// TODO save key v2
-				//cert.subject_ui = access.getSubjectUniqueIdentifier();
-				//cert.issuer_ui = cert.subject_ui;			
-				if (cert.version > Constants.V2) {
-					// Basic Constraints
-					if (access.isSupported(Constants.BC)) cert.generateBasicConstraint(access.isCritical(Constants.BC), access.isCA(), access.getPathLen());
-					// Authority and subject key identifiers
-					if (access.isSupported(Constants.AKID) && access.getEnabledKeyIdentifiers()) {
-						cert.generateAuthorityKeyIdentifier(access.isCritical(Constants.AKID));
-						cert.generateSubjectKeyIdentifier(access.isCritical(Constants.AKID));
-					}				
-					// Key usage
-					if (access.isSupported(Constants.KU)) cert.generateKeyUsage(access.isCritical(Constants.KU), access.getKeyUsage());
-					// Certificate policies
-					if (access.isSupported(Constants.CP)) cert.generateCertificatePolicies(access.isCritical(Constants.CP), access.getCpsUri());
-					// Subject alternative name
-					if (access.isSupported(Constants.SAN)) cert.generateAlternativeName(access.isCritical(Constants.SAN), access.getAlternativeName(Constants.SAN), Constants.SAN);
-					// Issuer alternative name
-					if (access.isSupported(Constants.IAN)) cert.generateAlternativeName(access.isCritical(Constants.IAN), access.getAlternativeName(Constants.IAN), Constants.IAN);
-					// Subject directory attributes
-					if (access.isSupported(Constants.SDA)) cert.generateSubjectDirectoryAttributes(access.isCritical(Constants.SDA), access.getDateOfBirth(), access.getSubjectDirectoryAttribute(Constants.POB), access.getGender(), access.getSubjectDirectoryAttribute(Constants.COC));
-					// Extended Key usage
-					if (access.isSupported(Constants.EKU)) cert.generateExtendedKeyUsage(access.isCritical(Constants.EKU), access.getExtendedKeyUsage());
-					// Inhibit any policy
-					if (access.isSupported(Constants.IAP)) cert.generateInhibitAnyPolicy(access.isCritical(Constants.IAP), access.getInhibitAnyPolicy(), access.getSkipCerts());					
-				}
-			}					
+								
 			cert.generateCertificate(cert.keypair.getPrivate());		
 			
 			MyKeyStore.putKey(keypair_name, cert.keypair.getPrivate(), cert.certificate, MyKeyStore.localPassword);
@@ -193,6 +164,12 @@ public class MyCode extends CodeV3 {
 		    }	    	
 		    
 			PrivateKeyEntry imported = MyKeyStore.getKey(file_name, password);
+			
+			int version = ((X509Certificate) imported.getCertificate()).getVersion();
+		    if (version - 1 > Constants.V1) {
+				GuiInterfaceV1.reportError("Application doesn't support certificates of version " + version + ".");
+		    	return false;
+			}
 			
 			MyKeyStore.load(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
 			if (MyKeyStore.ks.containsAlias(keypair_name)) {
@@ -291,6 +268,12 @@ public class MyCode extends CodeV3 {
 			fact = CertificateFactory.getInstance("X.509");
 			FileInputStream is = new FileInputStream (file.getAbsolutePath());
 		    X509Certificate cert = (X509Certificate) fact.generateCertificate(is);
+		    
+		    int version = cert.getVersion();
+		    if (version - 1 > Constants.V1) {
+				GuiInterfaceV1.reportError("Application doesn't support certificates of version " + version + ".");
+		    	return false;
+			}
 		    
 		    MyKeyStore.putCert(keypair_name, cert);
 			MyKeyStore.store(MyKeyStore.localKeyStore, MyKeyStore.localPassword);
@@ -438,71 +421,6 @@ public class MyCode extends CodeV3 {
 			access.setIssuerSignatureAlgorithm(current_cert.signature_algorithm);
 			// if (current_cert.version > Constants.V1)
 				// access.setIssuerUniqueIdentifier(v);
-		}
-		
-		if (current_cert.version > Constants.V1) {
-			// access.setSubjectUniqueIdentifier(v);
-			if (current_cert.version > Constants.V2) {
-				for (int i = 0; i < Constants.NUM_OF_EXTENSIONS; i++)
-					if (current_cert.extensions[i] == null)
-						access.setCritical(i, false);
-					else
-						access.setCritical(i, current_cert.extensions[i].isCritical());
-				
-				// Basic Constraints	
-				if (current_cert.extensions[Constants.BC] != null) {
-					if (current_cert.constraint == -1) {
-						access.setCA(false);
-						access.setPathLen("");
-					} else {
-						access.setCA(true);
-						if (current_cert.constraint == Integer.MAX_VALUE)
-							access.setPathLen("");
-						else
-							access.setPathLen(String.valueOf(current_cert.constraint));
-							
-					}
-				}
-				// Key Identifiers
-				if (signed && current_cert.extensions[Constants.AKID] != null) {
-					access.setAuthorityKeyID(String.valueOf(new DEROctetString(current_cert.akid.getKeyIdentifier())));
-					if (current_cert.akid.getAuthorityCertIssuer() != null )
-						access.setAuthorityIssuer((current_cert.akid.getAuthorityCertIssuer().getNames())[0].toString());
-					if (current_cert.akid.getAuthorityCertSerialNumber() != null)
-						access.setAuthoritySerialNumber(String.valueOf(current_cert.akid.getAuthorityCertSerialNumber()));
-				}
-				if (current_cert.extensions[Constants.SKID] != null && current_cert.skid.getKeyIdentifier() != null)
-					access.setSubjectKeyID(String.valueOf(new DEROctetString(current_cert.skid.getKeyIdentifier())));
-				// Key Usage
-				if (current_cert.extensions[Constants.KU] != null && current_cert.certificate.getKeyUsage() != null)
-					access.setKeyUsage(current_cert.certificate.getKeyUsage());
-				// Certificate policies
-				if (current_cert.extensions[Constants.CP] != null) {
-					access.setAnyPolicy(true);
-					access.setCpsUri(current_cert.cpsUri);
-				}
-				// Subject alternative name
-				if (current_cert.extensions[Constants.SAN] != null)
-					access.setAlternativeName(Constants.SAN, current_cert.subject_alternative_name);
-				// Issuer alternative name
-				if (current_cert.extensions[Constants.IAN] != null)
-					access.setAlternativeName(Constants.IAN, current_cert.issuer_alternative_name);
-				// Subject directory attributes
-				if (current_cert.extensions[Constants.SDA] != null) {
-					access.setDateOfBirth(current_cert.dateOfBirth);
-					access.setSubjectDirectoryAttribute(Constants.POB, current_cert.placeOfBirth);
-					access.setSubjectDirectoryAttribute(Constants.COC, current_cert.countryOfCitizenship);
-					access.setGender(current_cert.gender);
-				}
-				// Extended Key Usage
-				if (current_cert.extensions[Constants.EKU] != null && current_cert.extended_key_usage != null)
-					access.setExtendedKeyUsage(current_cert.extended_key_usage);
-				// Inhibit any policy
-				if (current_cert.extensions[Constants.IAP] != null) {
-					access.setInhibitAnyPolicy(true);
-					access.setSkipCerts(String.valueOf(current_cert.inhibitAnyPolicy));
-				}				
-			}			
 		}
 		return signed;
 	}

@@ -10,10 +10,12 @@ public class X509 {
 
 	public static void main(String[] args) {
 		try {
+			
 			// configuration array for supported public key algorithms		
 			// true - enabled / false - disabled
 			// sorted by their array index - DSA, RSA, GOST (not implemented), EC
 			boolean algorithm_conf[] = { true, true, false, true };
+			
 			// configuration array for supported v3 extensions			
 			// true - enabled / false - disabled
 			// sorted by their array index
@@ -33,12 +35,14 @@ public class X509 {
 										  true, 		// Inhibit anyPolicy 
 										  false 		// Freshest CRL (a.k.a. Delta CRL Distribution Point) (not implemented)
 										};
+			
 			// class MyCode is implemented by students
 			// it should be in the package "implementation"
 			// it should extend class CodeVX for jar file (X depends of a x509 supported version, it can be 1 or 3)
 			// class CodeVX has a field "access" which represents an access point to the GUI using getters/setters
 			@SuppressWarnings("unused")
 			CodeInterface my_code = new MyCode(algorithm_conf, extensions_conf);
+			
 		} catch (GuiException e) {
 			// Handles frame construction exceptions
 			GuiInterfaceV1.reportError(e);

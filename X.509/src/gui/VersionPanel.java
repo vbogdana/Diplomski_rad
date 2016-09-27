@@ -108,7 +108,7 @@ public class VersionPanel extends JPanel implements ActionListener {
 	
 	void setVersion(int v) {
 		selected = v;
-		buttons[v].setSelected(true);
+		if (buttons[v] != null) buttons[v].setSelected(true);
 	}
 
 }

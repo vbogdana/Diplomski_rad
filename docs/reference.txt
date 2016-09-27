@@ -11,6 +11,10 @@
 11. https://www.sysadmins.lv/blog-en/certificate-policies-extension-all-you-should-know-part-1.aspx
 12. https://blogs.technet.microsoft.com/xdot509/2012/11/26/pki-design-considerations-certificate-revocation-and-crl-publishing-strategies/
 13. https://en.wikipedia.org/wiki/Public_key_infrastructure
+14-16. reference za api eclipse i windows
+17. neka referenca na paket java.security.cert
+18. neka referenca na java.net.ssl
+19. referenca na java.swing
 
 
 
