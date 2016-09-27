@@ -38,7 +38,7 @@ public class X509 {
 			
 			// class MyCode is implemented by students
 			// it should be in the package "implementation"
-			// it should extend class CodeVX for jar file (X depends of a x509 supported version, it can be 1 or 3)
+			// it should extend class CodeVX from jar file (X depends of a x509 supported version, it can be 1 or 3)
 			// class CodeVX has a field "access" which represents an access point to the GUI using getters/setters
 			@SuppressWarnings("unused")
 			CodeInterface my_code = new MyCode(algorithm_conf, extensions_conf);

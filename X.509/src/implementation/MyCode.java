@@ -386,7 +386,7 @@ public class MyCode extends CodeV3 {
 			
 			while (certs.hasMoreElements()){
 				String alias = certs.nextElement();
-				if (alias.equals(keypair_name))
+				if (alias.toLowerCase().equals(keypair_name.toLowerCase()))
 					continue;
 				Entry local_entry = MyKeyStore.getCert(alias);
 				if (local_entry != null)
